@@ -328,9 +328,9 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
   <div class="fg"><label>Student Name</label><input type="text" id="fName" placeholder="e.g. Hailey, Elie..."></div>
   <div class="fg-row">
     <div class="fg"><label>Day</label><select id="fDay">
-      <option value="0">Monday</option><option value="1">Tuesday</option>
-      <option value="2">Wednesday</option><option value="3">Thursday</option>
-      <option value="4">Friday</option><option value="5">Saturday</option><option value="6">Sunday</option>
+      <option value="0">Sunday</option><option value="1">Monday</option>
+      <option value="2">Tuesday</option><option value="3">Wednesday</option>
+      <option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
     </select></div>
     <div class="fg"><label>Start Time (EDT)</label><select id="fTimeStart"></select></div>
   </div>
@@ -393,9 +393,9 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
   <div class="fg"><label>Student Name</label><input type="text" id="ecName" placeholder="Student name..."></div>
   <div class="fg-row">
     <div class="fg"><label>Day</label><select id="ecDay">
-      <option value="0">Monday</option><option value="1">Tuesday</option>
-      <option value="2">Wednesday</option><option value="3">Thursday</option>
-      <option value="4">Friday</option><option value="5">Saturday</option><option value="6">Sunday</option>
+      <option value="0">Sunday</option><option value="1">Monday</option>
+      <option value="2">Tuesday</option><option value="3">Wednesday</option>
+      <option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
     </select></div>
     <div class="fg"><label>Start Time (EDT)</label><select id="ecTimeStart"></select></div>
   </div>
@@ -413,9 +413,9 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
   <div class="fg"><label>Title</label><input type="text" id="pTitle" placeholder="e.g. Workout, Meeting..."></div>
   <div class="fg-row">
     <div class="fg"><label>Day</label><select id="pDay">
-      <option value="0">Monday</option><option value="1">Tuesday</option>
-      <option value="2">Wednesday</option><option value="3">Thursday</option>
-      <option value="4">Friday</option><option value="5">Saturday</option><option value="6">Sunday</option>
+      <option value="0">Sunday</option><option value="1">Monday</option>
+      <option value="2">Tuesday</option><option value="3">Wednesday</option>
+      <option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
     </select></div>
     <div class="fg"><label>Start Time (EDT)</label><select id="pTimeStart"></select></div>
   </div>
@@ -507,11 +507,12 @@ let students=[
 // 3pm=20,3:30=21,4pm=22,4:30=23,5pm=24,5:30=25,6pm=26,6:30=27
 // 7pm=28,7:30=29,8pm=30,8:30=31,9pm=32,9:30=33,10pm=34,10:30=35,11pm=36,11:30=37,12am=38
 let classes=[
+  // Sun=0, Mon=1, Tue=2, Wed=3, Thu=4, Fri=5, Sat=6
   // Mon: 차지정씨 8-10am EDT
-  {d:2,s:6,e:10,n:'차지정씨'},
+  {d:1,s:6,e:10,n:'차지정씨'},
   // Mon: Joel 4:30pm EDT
   {d:1,s:23,e:24,n:'Joel'},
-  // Mon: Elie 7:30-8:30pm EDT
+  // Mon: Elie 7:30-9pm EDT
   {d:1,s:29,e:32,n:'Elie'},
   // Mon: Woo 9-10:30pm EDT
   {d:1,s:32,e:35,n:'Woo'},
@@ -529,7 +530,7 @@ let classes=[
   {d:4,s:6,e:8,n:'Heidi'},
   // Thu: 서영 9:30am EDT
   {d:4,s:9,e:10,n:'서영'},
-  // Thu: Elie 7:30-8:30pm EDT
+  // Thu: Elie 7:30-9pm EDT
   {d:4,s:29,e:32,n:'Elie'},
   // Thu: 예은[Woo] 9:30pm EDT
   {d:4,s:33,e:34,n:'예은[Woo]'},
