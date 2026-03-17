@@ -129,32 +129,30 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
 .tz-btn:not(.active){color:var(--muted);}
 
 /* ── DAY COUNT BAR ── */
-.daily-bar{display:grid;grid-template-columns:72px repeat(7,1fr);background:var(--white);border-radius:9px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:8px;border:1px solid var(--border);}
+.daily-bar{display:grid;grid-template-columns:70px repeat(7,1fr);background:var(--white);border-radius:9px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:8px;border:1px solid var(--border);}
 .db-cell{padding:5px 3px;text-align:center;border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;}
 .db-cell:last-child{border-right:none;}
 .db-lbl{font-size:8px;color:var(--muted);}
 .db-cnt{font-weight:700;font-family:'DM Mono',monospace;font-size:12px;color:#9ca3af;}
 
-/* ── GRID ── */
+/* ── GRID TABLE ── */
 .grid-wrap{background:var(--white);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-md);border:1px solid var(--border);}
-.grid-con{display:grid;grid-template-columns:76px repeat(7,1fr);}
-.gc{padding:0;text-align:center;height:36px;min-height:36px;max-height:36px;box-sizing:border-box;display:block;border-right:1px solid var(--border);border-bottom:1px solid var(--border);font-size:9px;position:relative;overflow:visible;}
-.gc:nth-child(8n){border-right:none;}
-.gc.hdr{background:#f8fafc;font-weight:700;height:54px !important;min-height:54px !important;max-height:54px !important;position:sticky;top:0;z-index:10;border-bottom:2px solid var(--border);display:flex;align-items:center;justify-content:center;}
-.gc.hdr:first-child{z-index:11;font-size:10px;}
-.hdr-inner{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;}
-.hdr-day{font-size:11px;font-weight:700;margin-bottom:0;}
+.sched-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+.sched-table th,.sched-table td{border:1px solid var(--border);padding:0;margin:0;vertical-align:top;}
+.sched-table th{background:#f8fafc;border-bottom:2px solid var(--border);height:50px;text-align:center;vertical-align:middle;position:sticky;top:0;z-index:10;}
+.sched-table td{height:36px;position:relative;}
+.col-time{width:70px;}
+.td-time{background:#f8fafc;border-right:2px solid var(--border) !important;text-align:center;vertical-align:middle;padding:2px 3px;}
+.th-tz{font-size:11px;font-weight:700;line-height:1.6;}
+.hdr-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 0;}
+.hdr-day{font-size:10px;font-weight:700;}
 .hdr-date{font-size:17px;font-weight:700;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;margin:0 auto;}
 .hdr-date.kst-today{background:rgba(239,68,68,0.12);color:var(--kst);box-shadow:0 0 0 1.5px var(--kst);}
 .hdr-date.est-today{background:rgba(59,130,246,0.10);color:var(--est);box-shadow:0 0 0 1.5px var(--est);}
 .hdr-date.kst-today.est-today{background:rgba(239,68,68,0.10);color:var(--kst);box-shadow:0 0 0 1.5px var(--kst),0 0 0 3px rgba(59,130,246,0.35);}
-.gc.tlbl{background:#f8fafc;flex-direction:column;gap:0;border-right:2px solid var(--border);padding:2px 4px;height:36px;max-height:36px;overflow:hidden;}
-.tlbl-kst{font-size:8px;font-weight:700;color:var(--kst);font-family:'DM Mono',monospace;white-space:nowrap;}
-.tlbl-est{font-size:7px;color:var(--est);font-family:'DM Mono',monospace;opacity:.85;white-space:nowrap;}
-.task-cls{position:absolute;left:1px;right:1px;top:1px;z-index:2;font-size:9px;font-weight:700;cursor:pointer;transition:filter .12s;line-height:1.3;padding:3px 2px;background:var(--cell);color:var(--cell-text);border:1px solid var(--cell-border);text-align:center;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 2px 5px rgba(0,0,0,.08);}
+.task-cls{position:absolute;left:1px;right:1px;top:1px;z-index:2;font-size:9px;font-weight:700;cursor:pointer;transition:filter .12s;line-height:1.3;padding:3px 2px;background:var(--cell);color:var(--cell-text);border:1px solid var(--cell-border);text-align:center;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.08);}
 .task-cls:hover{filter:brightness(.93);}
-.task-cls.merged{position:absolute;left:1px;right:1px;top:1px;z-index:2;}
-.task-per{border-radius:4px;margin:1px;font-size:9px;font-weight:500;cursor:pointer;line-height:1.3;padding:2px;width:calc(100% - 2px);text-align:center;}
+.task-per{position:absolute;left:1px;right:1px;top:1px;z-index:2;font-size:9px;font-weight:500;cursor:pointer;line-height:1.3;padding:2px;text-align:center;border-radius:4px;}
 .task-per:hover{filter:brightness(.9);}
 
 /* ── MODAL ── */
@@ -227,7 +225,7 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
   .gc.hdr{height:46px !important;min-height:46px !important;max-height:46px !important;}
   .gc.tlbl{height:36px !important;min-height:36px !important;max-height:36px !important;}
   .grid-con{grid-template-columns:58px repeat(7,1fr);}
-  .daily-bar{grid-template-columns:58px repeat(7,1fr);}
+  .daily-bar{grid-template-columns:70px repeat(7,1fr);}
 }
 </style>
 
@@ -315,7 +313,7 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
       </div>
     </div>
     <div class="daily-bar" id="dailyBar"></div>
-    <div class="grid-wrap"><div id="scheduleGrid" class="grid-con"></div></div>
+    <div class="grid-wrap"><table id="scheduleGrid" class="sched-table"></table></div>
   </div>
 </div>
 
@@ -387,7 +385,7 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
 <!-- EDIT CLASS MODAL (click on class block) -->
 <div id="editClassModal" class="modal-ov"><div class="modal">
   <h3>Edit Class</h3>
-  <div class="fg"><label>Student Name</label><input type="text" id="ecName" readonly style="background:#f8fafc;color:var(--muted);"></div>
+  <div class="fg"><label>Student Name</label><input type="text" id="ecName" placeholder="Student name..."></div>
   <div class="fg-row">
     <div class="fg"><label>Day</label><select id="ecDay">
       <option value="0">Monday</option><option value="1">Tuesday</option>
@@ -640,83 +638,101 @@ function renderWeekTitle(){
 
 // ── GRID ──
 function renderGrid(){
-  const grid=document.getElementById('scheduleGrid');grid.innerHTML='';
+  const table=document.getElementById('scheduleGrid');
+  table.innerHTML='';
   const ws=currentWeekStart;
   const nowKST=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Seoul'}));
   const nowEST=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
 
-  // Header
-  const th=document.createElement('div');th.className='gc hdr';
-  th.innerHTML=`<div style="text-align:center;line-height:2"><span style="font-size:11px;font-weight:700;color:var(--est);display:block">EDT</span><span style="font-size:11px;font-weight:700;color:var(--kst);display:block">KST</span></div>`;
-  grid.appendChild(th);
+  // ── HEADER ROW ──
+  const thead=document.createElement('thead');
+  const hrow=document.createElement('tr');
+
+  // Time col header
+  const thTime=document.createElement('th');
+  thTime.className='col-time';
+  thTime.innerHTML=`<div class="th-tz"><span style="color:var(--est)">EDT</span><br><span style="color:var(--kst)">KST</span></div>`;
+  hrow.appendChild(thTime);
+
   for(let d=0;d<7;d++){
     const date=new Date(ws);date.setDate(ws.getDate()+d);
-    const cell=document.createElement('div');cell.className='gc hdr';
+    const th=document.createElement('th');
     let cls='hdr-date';
     const isK=date.getDate()===nowKST.getDate()&&date.getMonth()===nowKST.getMonth()&&date.getFullYear()===nowKST.getFullYear();
     const isE=date.getDate()===nowEST.getDate()&&date.getMonth()===nowEST.getMonth()&&date.getFullYear()===nowEST.getFullYear();
     if(isK)cls+=' kst-today';if(isE)cls+=' est-today';
-    cell.innerHTML=`<div class="hdr-inner"><div class="hdr-day" style="color:${DAY_COLORS[d]}">${DAYS[d]}</div><div class="${cls}">${date.getDate()}</div></div>`;
-    grid.appendChild(cell);
+    th.innerHTML=`<div class="hdr-inner"><div class="hdr-day" style="color:${DAY_COLORS[d]}">${DAYS[d]}</div><div class="${cls}">${date.getDate()}</div></div>`;
+    hrow.appendChild(th);
   }
+  thead.appendChild(hrow);
+  table.appendChild(thead);
 
-  // Build merged spans
+  // ── BODY ──
+  const tbody=document.createElement('tbody');
+
+  // Build class spans
   const mC=Array.from({length:7},()=>[]);
   const mP=Array.from({length:7},()=>[]);
   for(let d=0;d<7;d++){
-    classes.filter(c=>c.d===d).forEach(c=>{mC[d].push({name:c.n,s:c.s,e:c.e,orig:c});});
-    personal.filter(p=>p.d===d).forEach(p=>{mP[d].push({name:p.title,color:p.color,s:p.s,e:p.e,orig:p});});
+    classes.filter(c=>c.d===d).forEach(c=>mC[d].push({name:c.n,s:c.s,e:c.e,orig:c}));
+    personal.filter(p=>p.d===d).forEach(p=>mP[d].push({name:p.title,color:p.color,s:p.s,e:p.e,orig:p}));
   }
-
-  // Track covered slots
   const covC=Array.from({length:7},()=>new Set());
   const covP=Array.from({length:7},()=>new Set());
   mC.forEach((sp,d)=>sp.forEach(x=>{for(let t=x.s+1;t<x.e;t++)covC[d].add(t);}));
   mP.forEach((sp,d)=>sp.forEach(x=>{for(let t=x.s+1;t<x.e;t++)covP[d].add(t);}));
 
-  // Render rows - FORCE uniform height via JS inline styles
-  const ROW_H = 38;
-  const FORCE_H = `height:${ROW_H}px;min-height:${ROW_H}px;max-height:${ROW_H}px;overflow:visible;`;
+  const ROW_H=36;
+
   TIME_SLOTS.forEach((slot,ti)=>{
-    const tl=document.createElement('div');tl.className='gc tlbl';
-    tl.style.cssText=FORCE_H + 'background:#f8fafc;border-right:2px solid var(--border);border-bottom:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 3px;';
-    let h2='';
-    if(showEST)h2+=`<span class="tlbl-est" style="font-size:8px;font-weight:700;color:var(--est);font-family:'DM Mono',monospace;white-space:nowrap;display:block;">${slot.edtS}</span>`;
-    if(showKST)h2+=`<span class="tlbl-kst" style="font-size:7px;font-weight:700;color:var(--kst);font-family:'DM Mono',monospace;white-space:nowrap;display:block;">${slot.kstS}</span>`;
-    tl.innerHTML=h2;grid.appendChild(tl);
+    const tr=document.createElement('tr');
+
+    // Time label cell
+    const tdTime=document.createElement('td');
+    tdTime.className='td-time';
+    tdTime.style.height=ROW_H+'px';
+    let tlbl='';
+    if(showEST)tlbl+=`<div style="font-size:8px;font-weight:700;color:var(--est);font-family:'DM Mono',monospace;white-space:nowrap;">${slot.edtS}</div>`;
+    if(showKST)tlbl+=`<div style="font-size:7px;font-weight:700;color:var(--kst);font-family:'DM Mono',monospace;white-space:nowrap;">${slot.kstS}</div>`;
+    tdTime.innerHTML=tlbl;
+    tr.appendChild(tdTime);
 
     for(let d=0;d<7;d++){
-      const cell=document.createElement('div');cell.className='gc';cell.style.cssText=FORCE_H + 'position:relative;padding:0;border-right:1px solid var(--border);border-bottom:1px solid var(--border);';
+      const td=document.createElement('td');
+      td.style.height=ROW_H+'px';
+      td.style.position='relative';
 
       const cs=mC[d].find(x=>x.s===ti);
       const ps=mP[d].find(x=>x.s===ti);
 
       if(!covC[d].has(ti)&&cs){
         const span=cs.e-cs.s;
-        const totalH=span*ROW_H-2;
         const el=document.createElement('div');
-        el.className='task-cls merged';
-        el.style.cssText=`top:1px;left:1px;right:1px;height:${totalH}px;`;
-        el.innerHTML=`<div style="text-align:center;padding:2px"><div style="font-size:9px;font-weight:700">${cs.name}</div><div style="font-size:8px;opacity:.65">${slot.edtS}–${TIME_SLOTS[cs.e]?TIME_SLOTS[cs.e].edtS:'end'}</div></div>`;
-        el.title=`${cs.name}\nEDT: ${slot.edt} – ${TIME_SLOTS[cs.e]?TIME_SLOTS[cs.e].edt:''}\nKST: ${slot.kst}`;
+        el.className='task-cls';
+        el.style.height=(span*ROW_H-2)+'px';
+        el.innerHTML=`<div style="text-align:center;padding:2px"><div style="font-size:9px;font-weight:700">${cs.name}</div><div style="font-size:8px;opacity:.65">${slot.edtS}–${TIME_SLOTS[cs.e]?TIME_SLOTS[cs.e].edtS:''}</div></div>`;
         el.addEventListener('click',()=>openEditClassModal(cs.orig));
-        cell.appendChild(el);
+        td.appendChild(el);
       }
 
       if(!covP[d].has(ti)&&ps){
         const span=ps.e-ps.s;
-        const totalH=span*ROW_H-2;
-        const el=document.createElement('div');el.className='task-per';
-        el.style.cssText=`position:absolute;top:1px;left:1px;right:1px;height:${totalH}px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:8px;border-radius:4px;padding:2px;z-index:2;`;
-        el.style.background=ps.color+'28';el.style.color=ps.color;el.style.border=`1px solid ${ps.color}55`;
-        el.innerHTML=`<div style="font-weight:700">${ps.name}</div><div style="font-size:7px;opacity:.8">${slot.edtS}</div>`;
+        const el=document.createElement('div');
+        el.className='task-per';
+        el.style.height=(span*ROW_H-2)+'px';
+        el.style.background=ps.color+'28';
+        el.style.color=ps.color;
+        el.style.border=`1px solid ${ps.color}55`;
+        el.innerHTML=`<div style="font-weight:700">${ps.name}</div><div style="font-size:7px">${slot.edtS}</div>`;
         el.addEventListener('click',()=>{if(confirm(`Delete "${ps.name}"?`)){personal=personal.filter(p=>p!==ps.orig);renderAll();}});
-        cell.appendChild(el);
+        td.appendChild(el);
       }
 
-      grid.appendChild(cell);
+      tr.appendChild(td);
     }
+    tbody.appendChild(tr);
   });
+  table.appendChild(tbody);
 }
 
 // ── STUDENT LIST ──
@@ -862,12 +878,14 @@ document.getElementById('saveEditClassBtn').addEventListener('click',()=>{
   if(!editingClassKey)return;
   const idx=classes.indexOf(editingClassKey);
   if(idx>=0){
+    const newName=document.getElementById('ecName').value.trim();
+    if(newName)classes[idx].n=newName;
     classes[idx].d=parseInt(document.getElementById('ecDay').value);
     classes[idx].s=parseInt(document.getElementById('ecTimeStart').value);
     classes[idx].e=parseInt(document.getElementById('ecTimeEnd').value);
     if(classes[idx].e<=classes[idx].s)classes[idx].e=classes[idx].s+1;
   }
-  document.getElementById('editClassModal').classList.remove('open');renderAll();
+  document.getElementById('editClassModal').classList.remove('open');renderAll();scheduleSave();
 });
 document.getElementById('deleteClassBtn').addEventListener('click',()=>{
   if(!editingClassKey)return;
