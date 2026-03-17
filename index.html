@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scarlett's TimeSync Scheduler</title>
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="TimeSync">
+<meta name="theme-color" content="#4f7ef8">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap');
+@font-face{font-family:'Maple';src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@2.1/MaplestoryOTFBold.woff') format('woff');font-weight:700;}
+@font-face{font-family:'Maple';src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@2.1/MaplestoryOTFLight.woff') format('woff');font-weight:400;}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#f0f2f5;--white:#fff;--border:#e2e6ea;--text:#1a1d23;--muted:#6b7280;
+  --accent:#4f7ef8;--accent-light:#eef2ff;
+  --shadow:0 1px 3px rgba(0,0,0,0.08);--shadow-md:0 4px 12px rgba(0,0,0,0.08);
+  --kst:#ef4444;--kst-light:#fef2f2;--est:#3b82f6;--est-light:#eff6ff;
+  --cell:#bae6fd;--cell-text:#0c4a6e;--cell-border:#7dd3fc;
+}
+body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:13px;}
+
+/* ── HEADER ── */
+.app-header{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:var(--white);border-bottom:1px solid var(--border);box-shadow:var(--shadow);gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:200;}
+.logo-area h2{font-size:14px;font-weight:700;}
+.logo-area p{font-size:10px;color:var(--muted);}
+.header-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.clocks{display:flex;gap:6px;}
+.clock-badge{display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:7px;font-size:10px;font-family:'DM Mono',monospace;}
+.clock-badge.kst{background:var(--kst-light);color:var(--kst);}
+.clock-badge.est{background:var(--est-light);color:var(--est);}
+.tz-label{font-weight:700;font-size:9px;font-family:'Maple',sans-serif;}
+.btn{border:none;padding:6px 11px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;font-family:'Maple',sans-serif;}
+.btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{background:#3b66d6;}
+.btn-secondary{background:var(--bg);color:var(--text);border:1px solid var(--border);}.btn-secondary:hover{background:var(--border);}
+
+/* ── LAYOUT ── */
+.main-layout{display:flex;padding:12px 16px;gap:12px;align-items:flex-start;}
+.sidebar{width:220px;flex-shrink:0;display:flex;flex-direction:column;gap:10px;}
+.card{background:var(--white);border-radius:10px;padding:12px;box-shadow:var(--shadow);}
+
+/* ── MINI CALENDAR ── */
+.mini-cal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.mini-cal-hdr span{font-weight:700;font-size:12px;}
+.nav-btn{background:var(--bg);border:1px solid var(--border);width:22px;height:22px;border-radius:5px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;}
+.nav-btn:hover{background:var(--border);}
+.mini-wdays{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:4px;}
+.mini-wdays span{font-size:9px;font-weight:700;padding:1px 0;}
+.mini-wdays span:nth-child(1){color:#ef4444;}
+.mini-wdays span:nth-child(2){color:#f97316;}
+.mini-wdays span:nth-child(3){color:#22c55e;}
+.mini-wdays span:nth-child(4){color:#1e3a8a;}
+.mini-wdays span:nth-child(5){color:#f59e0b;}
+.mini-wdays span:nth-child(6){color:#8b5cf6;}
+.mini-wdays span:nth-child(7){color:#38bdf8;}
+.mini-days{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.mini-day{width:20px;height:20px;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;border-radius:50%;transition:all .12s;}
+.mini-day:hover{background:#f1f5f9;}
+.mini-day.other-month{color:#d1d5db;}
+.mini-day.in-week{background:var(--accent-light);color:var(--accent);font-weight:700;}
+.mini-day.kst-today{background:rgba(239,68,68,0.12)!important;color:var(--kst)!important;font-weight:700;box-shadow:0 0 0 1.5px var(--kst);}
+.mini-day.est-today{background:rgba(59,130,246,0.10)!important;color:var(--est)!important;font-weight:700;box-shadow:0 0 0 1.5px var(--est);}
+.mini-day.kst-today.est-today{background:rgba(239,68,68,0.10)!important;color:var(--kst)!important;box-shadow:0 0 0 1.5px var(--kst),0 0 0 3px rgba(59,130,246,0.4);}
+.today-info{margin-top:8px;padding-top:7px;border-top:1px solid var(--border);line-height:1.8;}
+.today-info div{font-size:9px;}
+.legend{display:flex;flex-direction:column;gap:3px;margin-top:6px;border-top:1px solid var(--border);padding-top:6px;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--muted);}
+.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.legend-dot.kst{background:rgba(239,68,68,0.15);box-shadow:0 0 0 1.5px var(--kst);}
+.legend-dot.est{background:rgba(59,130,246,0.1);box-shadow:0 0 0 1.5px var(--est);}
+
+/* ── STATS ── */
+.stat-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);font-size:10px;}
+.stat-row:last-child{border-bottom:none;}
+.stat-label{color:var(--muted);}
+.stat-val{font-weight:700;color:#9ca3af;font-family:'DM Mono',monospace;}
+.stat-sec{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:5px 0 2px;}
+
+/* ── STUDENT LIST ── */
+.sec-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.sec-title{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.icon-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;padding:1px 4px;border-radius:3px;}
+.icon-btn:hover{color:var(--text);background:var(--bg);}
+.s-item{display:flex;align-items:center;gap:4px;padding:5px 0;border-bottom:1px solid var(--border);font-size:10px;}
+.s-item:last-child{border-bottom:none;}
+.s-dot{width:6px;height:6px;border-radius:50%;background:var(--cell);border:1px solid var(--cell-border);flex-shrink:0;}
+.s-name{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;}
+.s-name:hover{color:var(--accent);text-decoration:underline;}
+.s-badge{display:flex;flex-direction:column;align-items:flex-end;gap:1px;flex-shrink:0;}
+.s-sess{font-family:'DM Mono',monospace;font-size:9px;color:#9ca3af;background:var(--bg);padding:1px 4px;border-radius:3px;cursor:pointer;border:1px solid var(--border);}
+.s-sess:hover{background:var(--border);}
+.s-wk{font-size:8px;color:#9ca3af;}
+.s-del{color:#ef4444;background:none;border:none;cursor:pointer;font-size:10px;padding:1px;opacity:.35;flex-shrink:0;}
+.s-del:hover{opacity:1;}
+
+/* ── PERSONAL LIST ── */
+.p-item{display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid var(--border);font-size:10px;}
+.p-item:last-child{border-bottom:none;}
+.p-sw{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+.p-name{flex:1;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.p-del{color:#ef4444;background:none;border:none;cursor:pointer;font-size:10px;opacity:.35;}
+.p-del:hover{opacity:1;}
+.empty-msg{font-size:10px;color:var(--muted);padding:3px 0;}
+
+/* ── SCHEDULE AREA ── */
+.schedule-area{flex:1;min-width:0;}
+.week-nav{display:flex;align-items:center;gap:7px;margin-bottom:8px;background:var(--white);padding:8px 12px;border-radius:9px;box-shadow:var(--shadow);flex-wrap:wrap;}
+#weekTitle{font-weight:700;font-size:12px;min-width:160px;}
+.today-btn{background:var(--accent-light);color:var(--accent);border:none;padding:3px 9px;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;margin-left:auto;font-family:'Maple',sans-serif;}
+.tz-toggle{display:flex;gap:4px;}
+.tz-btn{padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;border:1px solid var(--border);background:var(--bg);cursor:pointer;transition:all .15s;font-family:'Maple',sans-serif;}
+.tz-btn.kst.active{background:var(--kst-light);color:var(--kst);border-color:var(--kst);}
+.tz-btn.est.active{background:var(--est-light);color:var(--est);border-color:var(--est);}
+.tz-btn:not(.active){color:var(--muted);}
+
+/* ── DAILY BAR ── */
+.daily-bar{display:grid;grid-template-columns:72px repeat(7,1fr);background:var(--white);border-radius:8px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:6px;border:1px solid var(--border);}
+.db-cell{padding:4px 2px;text-align:center;border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;}
+.db-cell:last-child{border-right:none;}
+.db-lbl{font-size:8px;color:var(--muted);}
+.db-cnt{font-weight:700;font-family:'DM Mono',monospace;font-size:12px;color:#9ca3af;}
+
+/* ── GRID ── */
+.grid-wrap{background:var(--white);border-radius:10px;overflow:hidden;box-shadow:var(--shadow-md);border:1px solid var(--border);}
+.grid-con{display:grid;grid-template-columns:72px repeat(7,1fr);}
+.gc{padding:3px 2px;text-align:center;min-height:36px;display:flex;align-items:center;justify-content:center;border-right:1px solid var(--border);border-bottom:1px solid var(--border);font-size:9px;position:relative;flex-direction:column;gap:1px;}
+.gc:nth-child(8n){border-right:none;}
+.gc.hdr{background:#f8fafc;font-weight:700;min-height:48px;position:sticky;top:53px;z-index:10;border-bottom:2px solid var(--border);}
+.gc.hdr:first-child{z-index:11;}
+.hdr-inner{text-align:center;}
+.hdr-day{font-size:8px;font-weight:700;margin-bottom:2px;}
+.hdr-date{font-size:13px;font-weight:700;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;margin:0 auto;}
+.hdr-date.kst-today{background:rgba(239,68,68,0.12);color:var(--kst);box-shadow:0 0 0 1.5px var(--kst);}
+.hdr-date.est-today{background:rgba(59,130,246,0.10);color:var(--est);box-shadow:0 0 0 1.5px var(--est);}
+.hdr-date.kst-today.est-today{background:rgba(239,68,68,0.10);color:var(--kst);box-shadow:0 0 0 1.5px var(--kst),0 0 0 3px rgba(59,130,246,0.35);}
+.gc.tlbl{background:#f8fafc;flex-direction:column;gap:0;border-right:2px solid var(--border);padding:2px 4px;}
+.tkst{font-size:8px;font-weight:700;color:var(--kst);font-family:'DM Mono',monospace;}
+.test{font-size:8px;color:var(--est);font-family:'DM Mono',monospace;opacity:.85;}
+.task-cls{border-radius:4px;margin:1px;font-size:9px;font-weight:700;cursor:pointer;transition:filter .12s;line-height:1.3;padding:2px;width:calc(100% - 2px);background:var(--cell);color:var(--cell-text);border:1px solid var(--cell-border);text-align:center;}
+.task-cls:hover{filter:brightness(.93);}
+.task-cls.merged{position:absolute;left:1px;right:1px;z-index:2;display:flex;align-items:center;justify-content:center;border-radius:5px;box-shadow:0 2px 5px rgba(0,0,0,.1);}
+.task-per{border-radius:4px;margin:1px;font-size:9px;font-weight:500;cursor:pointer;line-height:1.3;padding:2px;width:calc(100% - 2px);text-align:center;}
+.task-per:hover{filter:brightness(.9);}
+
+/* ── MODAL ── */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;align-items:center;justify-content:center;}
+.modal-ov.open{display:flex;}
+.modal{background:var(--white);border-radius:14px;padding:20px;width:360px;max-width:95vw;box-shadow:0 20px 40px rgba(0,0,0,.15);}
+.modal h3{font-size:14px;font-weight:700;margin-bottom:14px;}
+.fg{margin-bottom:10px;}
+.fg label{display:block;font-size:9px;font-weight:700;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em;}
+.fg input,.fg select{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;font-family:'Maple',sans-serif;color:var(--text);background:var(--white);}
+.fg input:focus,.fg select:focus{outline:none;border-color:var(--accent);}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.modal-btns{display:flex;gap:7px;margin-top:14px;justify-content:flex-end;}
+.cancel-btn{background:var(--bg);border:1px solid var(--border);padding:6px 12px;border-radius:7px;cursor:pointer;font-size:11px;font-weight:500;font-family:'Maple',sans-serif;}
+.cancel-btn:hover{background:var(--border);}
+.sess-row{display:flex;gap:5px;align-items:center;}
+.sess-row input{width:60px!important;text-align:center;}
+.sess-row span{font-size:11px;color:var(--muted);}
+.cp-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px;}
+.cp-sw{width:20px;height:20px;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:transform .1s;}
+.cp-sw:hover{transform:scale(1.15);}
+.cp-sw.sel{border-color:#1a1d23;transform:scale(1.1);}
+.cc-row{display:flex;align-items:center;gap:5px;margin-top:5px;}
+.cc-row label{font-size:10px;color:var(--muted);}
+
+/* ── EDIT CLASS COUNT MODAL ── */
+.count-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;}
+.count-row{display:flex;flex-direction:column;gap:3px;}
+.count-row label{font-size:9px;font-weight:700;color:var(--muted);}
+.count-row input{padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:'Maple',sans-serif;text-align:center;width:100%;}
+.count-row input:focus{outline:none;border-color:var(--accent);}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo-area">
+    <h2>Scarlett's TimeSync Scheduler</h2>
+    <p>KST · EDT Dual Timezone Planner</p>
+  </div>
+  <div class="header-right">
+    <div class="clocks">
+      <div class="clock-badge kst"><span class="tz-label">KST</span><span id="kstClock">--</span></div>
+      <div class="clock-badge est"><span class="tz-label">EDT</span><span id="estClock">--</span></div>
+    </div>
+    <button class="btn btn-secondary" id="openPersonalBtn">＋ Personal</button>
+    <button class="btn btn-primary" id="openModalBtn">＋ Add Class</button>
+  </div>
+</header>
+
+<div class="main-layout">
+  <aside class="sidebar">
+    <!-- Mini Calendar -->
+    <div class="card">
+      <div class="mini-cal-hdr">
+        <button id="prevMonth" class="nav-btn">‹</button>
+        <span id="miniCalTitle"></span>
+        <button id="nextMonth" class="nav-btn">›</button>
+      </div>
+      <div class="mini-wdays"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
+      <div id="miniDays" class="mini-days"></div>
+      <div id="todayInfo" class="today-info"></div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot kst"></div>KST today</div>
+        <div class="legend-item"><div class="legend-dot est"></div>EDT today</div>
+      </div>
+    </div>
+    <!-- Stats -->
+    <div class="card">
+      <div class="sec-title" style="margin-bottom:6px;">📊 This Week's Stats</div>
+      <div id="statsPanel"></div>
+    </div>
+    <!-- Students -->
+    <div class="card">
+      <div class="sec-hdr">
+        <span class="sec-title">👩‍🎓 Students</span>
+        <button class="icon-btn" id="addStudentBtn">＋</button>
+      </div>
+      <div id="studentList"></div>
+    </div>
+    <!-- Personal -->
+    <div class="card">
+      <div class="sec-title" style="margin-bottom:6px;">🗓 Personal Events</div>
+      <div id="personalList"></div>
+    </div>
+  </aside>
+
+  <div class="schedule-area">
+    <div class="week-nav">
+      <button id="prevWeek" class="nav-btn">‹</button>
+      <span id="weekTitle"></span>
+      <button id="nextWeek" class="nav-btn">›</button>
+      <button id="todayBtn" class="today-btn">Today</button>
+      <div class="tz-toggle">
+        <button class="tz-btn kst active" id="btnKST">KST</button>
+        <button class="tz-btn est active" id="btnEST">EDT</button>
+      </div>
+    </div>
+    <div class="daily-bar" id="dailyBar"></div>
+    <div class="grid-wrap"><div id="scheduleGrid" class="grid-con"></div></div>
+  </div>
+</div>
+
+<!-- ADD CLASS MODAL -->
+<div id="classModal" class="modal-ov"><div class="modal">
+  <h3>Add Class</h3>
+  <div class="fg"><label>Student Name</label><input type="text" id="fName" placeholder="e.g. Hailey, Elie..."></div>
+  <div class="fg-row">
+    <div class="fg"><label>Day</label><select id="fDay">
+      <option value="0">Monday</option><option value="1">Tuesday</option>
+      <option value="2">Wednesday</option><option value="3">Thursday</option>
+      <option value="4">Friday</option><option value="5">Saturday</option><option value="6">Sunday</option>
+    </select></div>
+    <div class="fg"><label>Time (KST)</label><select id="fTime"></select></div>
+  </div>
+  <div class="modal-btns"><button class="cancel-btn" id="closeClassModal">Cancel</button><button class="btn btn-primary" id="saveClassBtn">Save</button></div>
+</div></div>
+
+<!-- ADD STUDENT MODAL -->
+<div id="addStudentModal" class="modal-ov"><div class="modal">
+  <h3>Add Student</h3>
+  <div class="fg"><label>Name</label><input type="text" id="newStudentName" placeholder="e.g. Hailey, Joel..."></div>
+  <div class="fg"><label>Total Sessions</label>
+    <div class="sess-row"><input type="number" id="newStudentTotal" value="8" min="1" max="999"><span>sessions</span></div>
+  </div>
+  <div class="modal-btns"><button class="cancel-btn" id="closeAddStudent">Cancel</button><button class="btn btn-primary" id="saveNewStudent">Add</button></div>
+</div></div>
+
+<!-- SESSIONS MODAL (done/total + per-day counts) -->
+<div id="sessionsModal" class="modal-ov"><div class="modal">
+  <h3 id="sessionsModalTitle">Edit Sessions</h3>
+  <div class="fg"><label>Completed / Total</label>
+    <div class="sess-row">
+      <input type="number" id="sDone" min="0" max="999">
+      <span>/</span>
+      <input type="number" id="sTotal" min="1" max="999">
+      <span>sessions</span>
+    </div>
+  </div>
+  <div class="fg">
+    <label>Classes Per Day (this week)</label>
+    <div class="count-grid" id="perDayCountGrid"></div>
+  </div>
+  <div class="modal-btns"><button class="cancel-btn" id="closeSessionsModal">Cancel</button><button class="btn btn-primary" id="saveSessionsBtn">Save</button></div>
+</div></div>
+
+<!-- RENAME MODAL -->
+<div id="renameModal" class="modal-ov"><div class="modal">
+  <h3>Rename Student</h3>
+  <div class="fg"><label>New Name</label><input type="text" id="renameInput" placeholder="Enter new name..."></div>
+  <div class="modal-btns"><button class="cancel-btn" id="closeRenameModal">Cancel</button><button class="btn btn-primary" id="saveRenameBtn">Save</button></div>
+</div></div>
+
+<!-- PERSONAL EVENT MODAL -->
+<div id="personalModal" class="modal-ov"><div class="modal">
+  <h3>Add Personal Event</h3>
+  <div class="fg"><label>Title</label><input type="text" id="pTitle" placeholder="e.g. Workout, Meeting..."></div>
+  <div class="fg-row">
+    <div class="fg"><label>Day</label><select id="pDay">
+      <option value="0">Monday</option><option value="1">Tuesday</option>
+      <option value="2">Wednesday</option><option value="3">Thursday</option>
+      <option value="4">Friday</option><option value="5">Saturday</option><option value="6">Sunday</option>
+    </select></div>
+    <div class="fg"><label>Time (KST)</label><select id="pTime"></select></div>
+  </div>
+  <div class="fg">
+    <label>Color</label>
+    <div class="cp-row" id="colorPicker"></div>
+    <div class="cc-row"><label>Custom:</label><input type="color" id="pColorCustom" value="#a78bfa" style="width:30px;height:24px;padding:1px;border:1px solid var(--border);border-radius:5px;cursor:pointer;"></div>
+  </div>
+  <div class="modal-btns"><button class="cancel-btn" id="closePersonalModal">Cancel</button><button class="btn btn-primary" id="savePersonalBtn">Save</button></div>
+</div></div>
+
+<script>
+// ── CONSTANTS ──
+const DAY_COLORS=['#f97316','#22c55e','#1e3a8a','#f59e0b','#8b5cf6','#38bdf8','#ef4444'];
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const WDAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const PRESET_COLORS=['#f87171','#fb923c','#fbbf24','#4ade80','#34d399','#60a5fa','#a78bfa','#f472b6','#94a3b8','#e879f9'];
+
+// ── TIMEZONE ──
+function getHourDiff(){
+  const now=new Date(),yr=now.getFullYear();
+  let d=new Date(yr,2,1);while(d.getDay()!==0)d.setDate(d.getDate()+1);d.setDate(d.getDate()+7);d.setHours(2,0,0,0);
+  let d2=new Date(yr,10,1);while(d2.getDay()!==0)d2.setDate(d2.getDate()+1);d2.setHours(2,0,0,0);
+  return(now>=d&&now<d2)?13:14;
+}
+const HDIFF=getHourDiff();
+function kstToEt(h,m){let t=h*60+m-HDIFF*60;t=((t%1440)+1440)%1440;return{h:Math.floor(t/60),m:t%60};}
+function fmt(h,m){const ap=h<12?'AM':'PM';const hh=h%12===0?12:h%12;return`${hh}:${String(m).padStart(2,'0')} ${ap}`;}
+
+// ── TIME SLOTS: 6:00 AM (0) → 12:00 AM (36) ──
+const TIME_SLOTS=[];
+for(let h=6;h<=24;h++){
+  for(let m=0;m<60;m+=30){
+    if(h===24&&m>0)break;
+    const rh=h%24,et=kstToEt(rh,m);
+    TIME_SLOTS.push({kst:fmt(rh,m),est:fmt(et.h,et.m)});
+  }
+}
+
+// ── STATE ──
+let showKST=true,showEST=true;
+let calMonth=new Date(2026,2,1);
+let currentWeekStart=getWeekStart(new Date());
+let editingStudentIdx=null,renamingStudentIdx=null;
+let selectedColor=PRESET_COLORS[0];
+
+// students: { name, done, total, perDay:[0,0,0,0,0,0,0] }
+let students=[
+  {name:'차지정씨',done:0,total:8,perDay:[5,0,0,3,0,0,0]},
+  {name:'Hailey(예은)',done:0,total:8,perDay:[0,4,0,0,0,0,0]},
+  {name:'윤서',done:0,total:8,perDay:[0,0,4,0,2,0,0]},
+  {name:'Heidi',done:0,total:8,perDay:[0,0,0,3,0,0,0]},
+  {name:'수연',done:0,total:8,perDay:[0,0,0,0,3,0,0]},
+  {name:'서영',done:0,total:8,perDay:[0,0,0,1,2,0,0]},
+  {name:'Joel',done:0,total:8,perDay:[1,0,0,0,0,0,0]},
+  {name:'Elie',done:0,total:8,perDay:[3,0,0,3,0,0,0]},
+  {name:'Woo',done:0,total:8,perDay:[3,0,0,0,0,0,0]},
+  {name:'Serena',done:0,total:8,perDay:[1,0,0,0,0,0,0]},
+  {name:'캐서린',done:0,total:8,perDay:[0,0,0,0,0,5,0]},
+  {name:'빈센트',done:0,total:8,perDay:[0,0,0,0,0,3,0]},
+  {name:'예은[Woo]',done:0,total:8,perDay:[0,0,0,1,0,0,0]},
+  {name:'하경준용',done:0,total:8,perDay:[0,0,0,3,0,0,0]},
+  {name:'주연',done:0,total:8,perDay:[0,0,0,0,0,1,0]},
+  {name:'동혁분',done:0,total:8,perDay:[0,1,0,0,0,0,0]},
+];
+
+// classes: [dayIdx, slotIdx, studentName]
+let classes=[
+  [0,4,'차지정씨'],[0,5,'차지정씨'],[0,6,'차지정씨'],[0,7,'차지정씨'],[0,8,'차지정씨'],
+  [0,21,'Joel'],
+  [0,27,'Elie'],[0,28,'Elie'],[0,29,'Elie'],
+  [0,30,'Woo'],[0,31,'Woo'],[0,32,'Woo'],[0,33,'Serena'],
+  [1,4,'Hailey(예은)'],[1,5,'Hailey(예은)'],[1,6,'Hailey(예은)'],[1,7,'Hailey(예은)'],
+  [1,34,'동혁분'],
+  [2,3,'윤서'],[2,4,'윤서'],[2,5,'윤서'],[2,6,'윤서'],
+  [3,1,'차지정씨'],[3,2,'차지정씨'],[3,3,'차지정씨'],
+  [3,4,'Heidi'],[3,5,'Heidi'],[3,6,'Heidi'],
+  [3,7,'서영'],
+  [3,27,'Elie'],[3,28,'Elie'],[3,29,'Elie'],
+  [3,31,'예은[Woo]'],[3,32,'하경준용'],[3,33,'하경준용'],[3,34,'하경준용'],
+  [4,3,'윤서'],[4,4,'윤서'],
+  [4,5,'수연'],[4,6,'수연'],[4,7,'수연'],
+  [4,8,'서영'],[4,9,'서영'],
+  [4,26,'윤서'],
+  [5,24,'캐서린'],[5,25,'캐서린'],[5,26,'캐서린'],[5,27,'캐서린'],[5,28,'캐서린'],
+  [5,29,'빈센트'],[5,30,'빈센트'],[5,31,'빈센트'],[5,33,'주연'],
+];
+
+let personal=[];
+
+function getWeekStart(date){
+  const d=new Date(date);const day=d.getDay();
+  d.setDate(d.getDate()+(day===0?-6:1-day));d.setHours(0,0,0,0);return d;
+}
+
+// ── CLOCK ──
+function updateClock(){
+  const now=new Date();
+  document.getElementById('kstClock').textContent=now.toLocaleTimeString('en-US',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
+  document.getElementById('estClock').textContent=now.toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
+}
+setInterval(updateClock,1000);updateClock();
+
+// ── MINI CALENDAR ──
+function renderMiniCal(){
+  const yr=calMonth.getFullYear(),mo=calMonth.getMonth();
+  document.getElementById('miniCalTitle').textContent=`${MONTHS[mo]} ${yr}`;
+  const nowKST=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Seoul'}));
+  const nowEST=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
+  const firstDay=new Date(yr,mo,1).getDay();
+  const lastDate=new Date(yr,mo+1,0).getDate();
+  const prevLast=new Date(yr,mo,0).getDate();
+  const ws=currentWeekStart;const we=new Date(ws);we.setDate(we.getDate()+6);
+  const c=document.getElementById('miniDays');c.innerHTML='';
+  for(let i=0;i<firstDay;i++){const d=document.createElement('div');d.className='mini-day other-month';d.textContent=prevLast-firstDay+i+1;c.appendChild(d);}
+  for(let i=1;i<=lastDate;i++){
+    const d=document.createElement('div');d.className='mini-day';
+    const td=new Date(yr,mo,i);
+    if(td>=ws&&td<=we)d.classList.add('in-week');
+    if(i===nowKST.getDate()&&mo===nowKST.getMonth()&&yr===nowKST.getFullYear())d.classList.add('kst-today');
+    if(i===nowEST.getDate()&&mo===nowEST.getMonth()&&yr===nowEST.getFullYear())d.classList.add('est-today');
+    d.textContent=i;
+    d.addEventListener('click',()=>{currentWeekStart=getWeekStart(td);calMonth=new Date(td);renderAll();});
+    c.appendChild(d);
+  }
+  const info=document.getElementById('todayInfo');
+  if(info){
+    const kd=WDAYS[nowKST.getDay()],ed=WDAYS[nowEST.getDay()];
+    info.innerHTML=`<div style="color:var(--kst);font-size:9px;font-weight:700;">🇰🇷 KST: ${MONTHS[nowKST.getMonth()].slice(0,3)} ${nowKST.getDate()} (${kd})</div><div style="color:var(--est);font-size:9px;margin-top:1px;">🇺🇸 EDT: ${MONTHS[nowEST.getMonth()].slice(0,3)} ${nowEST.getDate()} (${ed})</div>`;
+  }
+}
+
+// ── STATS ──
+function getPerDayCounts(){
+  // Sum perDay from each student's stored data
+  const perDay=Array(7).fill(0);
+  students.forEach(s=>{s.perDay.forEach((v,i)=>perDay[i]+=v);});
+  return perDay;
+}
+function renderStats(){
+  const perDay=getPerDayCounts();
+  const total=perDay.reduce((a,b)=>a+b,0);
+  document.getElementById('statsPanel').innerHTML=`
+    <div class="stat-row"><span class="stat-label">Total Students</span><span class="stat-val">${students.length}</span></div>
+    <div class="stat-row"><span class="stat-label">Weekly Classes</span><span class="stat-val">${total}</span></div>
+    <div class="stat-row"><span class="stat-label">Active Days</span><span class="stat-val">${perDay.filter(x=>x>0).length}</span></div>
+    <div class="stat-sec">Classes Per Day</div>
+    ${DAYS.map((d,i)=>`<div class="stat-row"><span class="stat-label" style="color:${DAY_COLORS[i]};font-weight:700">${d}</span><span class="stat-val">${perDay[i]}</span></div>`).join('')}
+  `;
+}
+
+function renderDailyBar(){
+  const bar=document.getElementById('dailyBar');bar.innerHTML='';
+  const perDay=getPerDayCounts();
+  const lbl=document.createElement('div');lbl.className='db-cell';lbl.innerHTML='<span class="db-lbl">Classes</span>';bar.appendChild(lbl);
+  DAYS.forEach((d,i)=>{
+    const cell=document.createElement('div');cell.className='db-cell';const cnt=perDay[i];
+    cell.innerHTML=`<span class="db-cnt" style="${cnt>0?'color:'+DAY_COLORS[i]:''}">${cnt}</span><span class="db-lbl" style="color:${DAY_COLORS[i]};font-weight:700">${d}</span>`;
+    bar.appendChild(cell);
+  });
+}
+
+// ── WEEK TITLE ──
+function renderWeekTitle(){
+  const ws=currentWeekStart,we=new Date(ws);we.setDate(we.getDate()+6);
+  const o={month:'short',day:'numeric'};
+  document.getElementById('weekTitle').textContent=`${ws.toLocaleDateString('en-US',o)} – ${we.toLocaleDateString('en-US',o)}, ${we.getFullYear()}`;
+}
+
+// ── GRID ──
+function renderGrid(){
+  const grid=document.getElementById('scheduleGrid');grid.innerHTML='';
+  const ws=currentWeekStart;
+  const nowKST=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Seoul'}));
+  const nowEST=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
+
+  // Header
+  const th=document.createElement('div');th.className='gc hdr';
+  th.innerHTML=`<div style="font-size:8px;line-height:1.6"><span style="color:var(--kst);font-weight:700">KST</span><br><span style="color:var(--est)">EDT</span></div>`;
+  grid.appendChild(th);
+  for(let d=0;d<7;d++){
+    const date=new Date(ws);date.setDate(ws.getDate()+d);
+    const cell=document.createElement('div');cell.className='gc hdr';
+    let cls='hdr-date';
+    const isK=date.getDate()===nowKST.getDate()&&date.getMonth()===nowKST.getMonth()&&date.getFullYear()===nowKST.getFullYear();
+    const isE=date.getDate()===nowEST.getDate()&&date.getMonth()===nowEST.getMonth()&&date.getFullYear()===nowEST.getFullYear();
+    if(isK)cls+=' kst-today';if(isE)cls+=' est-today';
+    cell.innerHTML=`<div class="hdr-inner"><div class="hdr-day" style="color:${DAY_COLORS[d]}">${DAYS[d]}</div><div class="${cls}">${date.getDate()}</div></div>`;
+    grid.appendChild(cell);
+  }
+
+  // Build merge maps
+  const mergeClass=Array.from({length:7},()=>[]);
+  const mergePer=Array.from({length:7},()=>[]);
+  for(let d=0;d<7;d++){
+    let ti=0;
+    while(ti<TIME_SLOTS.length){
+      const mc=classes.find(c=>c[0]===d&&c[1]===ti);
+      if(mc){let e=ti;while(e+1<TIME_SLOTS.length&&classes.find(c=>c[0]===d&&c[1]===e+1&&c[2]===mc[2]))e++;mergeClass[d].push({name:mc[2],s:ti,e});ti=e+1;}
+      else ti++;
+    }
+    ti=0;
+    while(ti<TIME_SLOTS.length){
+      const mp=personal.find(p=>p[0]===d&&p[1]===ti);
+      if(mp){let e=ti;while(e+1<TIME_SLOTS.length&&personal.find(p=>p[0]===d&&p[1]===e+1&&p[2]===mp[2]&&p[3]===mp[3]))e++;mergePer[d].push({name:mp[2],color:mp[3],s:ti,e});ti=e+1;}
+      else ti++;
+    }
+  }
+  const covC=Array.from({length:7},()=>new Set());
+  const covP=Array.from({length:7},()=>new Set());
+  mergeClass.forEach((sp,d)=>sp.forEach(x=>{for(let t=x.s+1;t<=x.e;t++)covC[d].add(t);}));
+  mergePer.forEach((sp,d)=>sp.forEach(x=>{for(let t=x.s+1;t<=x.e;t++)covP[d].add(t);}));
+
+  TIME_SLOTS.forEach((slot,ti)=>{
+    const tl=document.createElement('div');tl.className='gc tlbl';
+    let h2='';
+    if(showKST)h2+=`<span class="tkst">${slot.kst}</span>`;
+    if(showEST)h2+=`<span class="test">${slot.est}</span>`;
+    tl.innerHTML=h2;grid.appendChild(tl);
+
+    for(let d=0;d<7;d++){
+      const cell=document.createElement('div');cell.className='gc';cell.style.position='relative';cell.style.padding='0';
+      const cs=mergeClass[d].find(x=>x.s===ti);
+      const ps=mergePer[d].find(x=>x.s===ti);
+      if(!covC[d].has(ti)&&cs){
+        const span=cs.e-cs.s+1;
+        const el=document.createElement('div');el.className='task-cls merged';
+        el.style.cssText=`top:1px;left:1px;right:1px;height:calc(${span*100}% + ${span-1}px - 2px);`;
+        el.innerHTML=`<div style="text-align:center;padding:2px"><div style="font-size:9px;font-weight:700">${cs.name}</div><div style="font-size:8px;opacity:.65">${span*30}min</div></div>`;
+        el.title=`${cs.name} · ${TIME_SLOTS[cs.s].kst} – ${TIME_SLOTS[cs.e].kst}`;
+        el.addEventListener('click',()=>{
+          if(confirm(`Delete class?\n${cs.name}\n${DAYS[d]} ${TIME_SLOTS[cs.s].kst} – ${TIME_SLOTS[cs.e].kst}`)){
+            for(let t=cs.s;t<=cs.e;t++)classes=classes.filter(c=>!(c[0]===d&&c[1]===t&&c[2]===cs.name));
+            renderAll();
+          }
+        });
+        cell.appendChild(el);
+      }
+      if(!covP[d].has(ti)&&ps){
+        const span=ps.e-ps.s+1;
+        const el=document.createElement('div');el.className='task-per';
+        el.style.cssText=`position:absolute;bottom:1px;left:1px;right:1px;height:${span>1?`calc(${span*100}% + ${span-1}px - 2px)`:'calc(100% - 2px)'};display:flex;align-items:center;justify-content:center;`;
+        el.style.background=ps.color+'28';el.style.color=ps.color;el.style.border=`1px solid ${ps.color}55`;
+        el.textContent=ps.name;
+        el.addEventListener('click',()=>{
+          if(confirm(`Delete "${ps.name}"?`)){for(let t=ps.s;t<=ps.e;t++)personal=personal.filter(p=>!(p[0]===d&&p[1]===t&&p[2]===ps.name));renderAll();}
+        });
+        cell.appendChild(el);
+      }
+      grid.appendChild(cell);
+    }
+  });
+}
+
+// ── STUDENT LIST ──
+function renderStudentList(){
+  const c=document.getElementById('studentList');c.innerHTML='';
+  students.forEach((s,idx)=>{
+    const wk=s.perDay.reduce((a,b)=>a+b,0);
+    const item=document.createElement('div');item.className='s-item';
+    item.innerHTML=`
+      <div class="s-dot"></div>
+      <div class="s-name" title="Click to rename">${s.name}</div>
+      <div class="s-badge">
+        <button class="s-sess">${s.done}/${s.total}</button>
+        <span class="s-wk">×${wk}/wk</span>
+      </div>
+      <button class="s-del">✕</button>
+    `;
+    item.querySelector('.s-name').addEventListener('click',()=>openRenameModal(idx));
+    item.querySelector('.s-sess').addEventListener('click',()=>openSessionsModal(idx));
+    item.querySelector('.s-del').addEventListener('click',()=>{
+      if(confirm(`Remove ${s.name}?`)){students.splice(idx,1);classes=classes.filter(c=>c[2]!==s.name);renderAll();}
+    });
+    c.appendChild(item);
+  });
+}
+
+// ── PERSONAL LIST ──
+function renderPersonalList(){
+  const c=document.getElementById('personalList');c.innerHTML='';
+  if(!personal.length){c.innerHTML='<div class="empty-msg">None yet</div>';return;}
+  const seen=new Set();
+  personal.forEach(p=>{
+    const key=`${p[2]}|${p[3]}`;if(seen.has(key))return;seen.add(key);
+    const item=document.createElement('div');item.className='p-item';
+    item.innerHTML=`<div class="p-sw" style="background:${p[3]}"></div><div class="p-name">${p[2]}</div><button class="p-del">✕</button>`;
+    item.querySelector('.p-del').addEventListener('click',()=>{
+      if(confirm(`Delete "${p[2]}"?`)){personal=personal.filter(x=>x[2]!==p[2]);renderAll();}
+    });
+    c.appendChild(item);
+  });
+}
+
+// ── SESSIONS MODAL (with per-day count inputs) ──
+function openSessionsModal(idx){
+  editingStudentIdx=idx;
+  const s=students[idx];
+  document.getElementById('sessionsModalTitle').textContent=`${s.name} · Sessions`;
+  document.getElementById('sDone').value=s.done;
+  document.getElementById('sTotal').value=s.total;
+  // Build per-day count grid
+  const grid=document.getElementById('perDayCountGrid');
+  grid.innerHTML='';
+  DAYS.forEach((day,di)=>{
+    const row=document.createElement('div');row.className='count-row';
+    row.innerHTML=`<label style="color:${DAY_COLORS[di]}">${day}</label><input type="number" id="pdCount_${di}" min="0" max="99" value="${s.perDay[di]}" placeholder="0">`;
+    grid.appendChild(row);
+  });
+  document.getElementById('sessionsModal').classList.add('open');
+}
+document.getElementById('saveSessionsBtn').addEventListener('click',()=>{
+  const s=students[editingStudentIdx];
+  s.done=parseInt(document.getElementById('sDone').value)||0;
+  s.total=parseInt(document.getElementById('sTotal').value)||1;
+  DAYS.forEach((_,di)=>{
+    s.perDay[di]=parseInt(document.getElementById(`pdCount_${di}`).value)||0;
+  });
+  document.getElementById('sessionsModal').classList.remove('open');
+  renderAll();
+});
+document.getElementById('closeSessionsModal').addEventListener('click',()=>document.getElementById('sessionsModal').classList.remove('open'));
+
+// ── RENAME ──
+function openRenameModal(idx){
+  renamingStudentIdx=idx;
+  document.getElementById('renameInput').value=students[idx].name;
+  document.getElementById('renameModal').classList.add('open');
+  setTimeout(()=>document.getElementById('renameInput').select(),80);
+}
+document.getElementById('saveRenameBtn').addEventListener('click',()=>{
+  const n=document.getElementById('renameInput').value.trim();if(!n)return;
+  const old=students[renamingStudentIdx].name;
+  students[renamingStudentIdx].name=n;
+  classes.forEach(c=>{if(c[2]===old)c[2]=n;});
+  document.getElementById('renameModal').classList.remove('open');renderAll();
+});
+document.getElementById('closeRenameModal').addEventListener('click',()=>document.getElementById('renameModal').classList.remove('open'));
+document.getElementById('renameInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('saveRenameBtn').click();});
+
+// ── ADD STUDENT ──
+document.getElementById('addStudentBtn').addEventListener('click',()=>{
+  document.getElementById('newStudentName').value='';document.getElementById('newStudentTotal').value=8;
+  document.getElementById('addStudentModal').classList.add('open');
+});
+document.getElementById('closeAddStudent').addEventListener('click',()=>document.getElementById('addStudentModal').classList.remove('open'));
+document.getElementById('saveNewStudent').addEventListener('click',()=>{
+  const name=document.getElementById('newStudentName').value.trim();if(!name){alert('Enter a name!');return;}
+  const total=parseInt(document.getElementById('newStudentTotal').value)||8;
+  students.push({name,done:0,total,perDay:Array(7).fill(0)});
+  document.getElementById('addStudentModal').classList.remove('open');renderAll();
+});
+
+// ── ADD CLASS ──
+const fTime=document.getElementById('fTime');
+TIME_SLOTS.forEach((s,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${s.kst} (EDT: ${s.est})`;fTime.appendChild(o);});
+document.getElementById('openModalBtn').addEventListener('click',()=>{document.getElementById('fName').value='';document.getElementById('classModal').classList.add('open');});
+document.getElementById('closeClassModal').addEventListener('click',()=>document.getElementById('classModal').classList.remove('open'));
+document.getElementById('saveClassBtn').addEventListener('click',()=>{
+  const name=document.getElementById('fName').value.trim();if(!name){alert('Enter student name!');return;}
+  const day=parseInt(document.getElementById('fDay').value);
+  const time=parseInt(document.getElementById('fTime').value);
+  classes.push([day,time,name]);
+  if(!students.find(s=>s.name===name))students.push({name,done:0,total:8,perDay:Array(7).fill(0)});
+  document.getElementById('classModal').classList.remove('open');renderAll();
+});
+
+// ── PERSONAL EVENT ──
+const picker=document.getElementById('colorPicker');
+PRESET_COLORS.forEach(col=>{
+  const sw=document.createElement('div');sw.className='cp-sw'+(col===selectedColor?' sel':'');sw.style.background=col;
+  sw.addEventListener('click',()=>{selectedColor=col;document.querySelectorAll('.cp-sw').forEach(s=>s.classList.remove('sel'));sw.classList.add('sel');document.getElementById('pColorCustom').value=col;});
+  picker.appendChild(sw);
+});
+document.getElementById('pColorCustom').addEventListener('input',e=>{selectedColor=e.target.value;document.querySelectorAll('.cp-sw').forEach(s=>s.classList.remove('sel'));});
+const pTime=document.getElementById('pTime');
+TIME_SLOTS.forEach((s,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${s.kst} (EDT: ${s.est})`;pTime.appendChild(o);});
+document.getElementById('openPersonalBtn').addEventListener('click',()=>{document.getElementById('pTitle').value='';document.getElementById('personalModal').classList.add('open');});
+document.getElementById('closePersonalModal').addEventListener('click',()=>document.getElementById('personalModal').classList.remove('open'));
+document.getElementById('savePersonalBtn').addEventListener('click',()=>{
+  const title=document.getElementById('pTitle').value.trim();if(!title){alert('Enter a title!');return;}
+  const day=parseInt(document.getElementById('pDay').value);
+  const time=parseInt(document.getElementById('pTime').value);
+  const color=document.getElementById('pColorCustom').value||selectedColor;
+  personal.push([day,time,title,color]);document.getElementById('personalModal').classList.remove('open');renderAll();
+});
+
+// ── TZ TOGGLE ──
+document.getElementById('btnKST').addEventListener('click',()=>{showKST=!showKST;if(!showKST&&!showEST)showEST=true;document.getElementById('btnKST').classList.toggle('active',showKST);document.getElementById('btnEST').classList.toggle('active',showEST);renderGrid();});
+document.getElementById('btnEST').addEventListener('click',()=>{showEST=!showEST;if(!showKST&&!showEST)showKST=true;document.getElementById('btnKST').classList.toggle('active',showKST);document.getElementById('btnEST').classList.toggle('active',showEST);renderGrid();});
+
+// ── NAVIGATION ──
+document.getElementById('prevWeek').addEventListener('click',()=>{currentWeekStart.setDate(currentWeekStart.getDate()-7);calMonth=new Date(currentWeekStart);renderAll();});
+document.getElementById('nextWeek').addEventListener('click',()=>{currentWeekStart.setDate(currentWeekStart.getDate()+7);calMonth=new Date(currentWeekStart);renderAll();});
+document.getElementById('todayBtn').addEventListener('click',()=>{currentWeekStart=getWeekStart(new Date());calMonth=new Date(currentWeekStart);renderAll();});
+document.getElementById('prevMonth').addEventListener('click',()=>{calMonth.setMonth(calMonth.getMonth()-1);renderMiniCal();});
+document.getElementById('nextMonth').addEventListener('click',()=>{calMonth.setMonth(calMonth.getMonth()+1);renderMiniCal();});
+
+['classModal','addStudentModal','sessionsModal','personalModal','renameModal'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
+});
+
+function renderAll(){renderMiniCal();renderWeekTitle();renderStats();renderDailyBar();renderGrid();renderStudentList();renderPersonalList();}
+renderAll();
+</script>
+
+<!-- PWA install banner -->
+<div id="installBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#4f7ef8;color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;z-index:500;font-family:'Maple',sans-serif;font-size:12px;box-shadow:0 -2px 12px rgba(0,0,0,0.15);">
+  <span>📱 홈 화면에 추가해서 앱처럼 사용하세요!</span>
+  <div style="display:flex;gap:8px;">
+    <button id="installBtn" style="background:#fff;color:#4f7ef8;border:none;padding:6px 12px;border-radius:6px;font-weight:700;cursor:pointer;font-family:'Maple',sans-serif;font-size:11px;">설치</button>
+    <button id="dismissBtn" style="background:rgba(255,255,255,0.2);color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:13px;">✕</button>
+  </div>
+</div>
+
+<script>
+// Service Worker
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').then(()=>console.log('SW registered'));
+}
+
+// Install prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const banner = document.getElementById('installBanner');
+  if(banner) banner.style.display = 'flex';
+});
+
+document.getElementById('installBtn')?.addEventListener('click', async () => {
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const {outcome} = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('installBanner').style.display = 'none';
+});
+
+document.getElementById('dismissBtn')?.addEventListener('click', () => {
+  document.getElementById('installBanner').style.display = 'none';
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBanner').style.display = 'none';
+});
+</script>
+</body>
+</html>
