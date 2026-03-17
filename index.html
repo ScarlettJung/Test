@@ -138,7 +138,7 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
 /* ── GRID ── */
 .grid-wrap{background:var(--white);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-md);border:1px solid var(--border);}
 .grid-con{display:grid;grid-template-columns:76px repeat(7,1fr);}
-.gc{padding:3px 2px;text-align:center;min-height:38px;display:flex;align-items:center;justify-content:center;border-right:1px solid var(--border);border-bottom:1px solid var(--border);font-size:9px;position:relative;flex-direction:column;gap:1px;}
+.gc{padding:0;text-align:center;height:40px;display:flex;align-items:center;justify-content:center;border-right:1px solid var(--border);border-bottom:1px solid var(--border);font-size:9px;position:relative;flex-direction:column;gap:1px;overflow:visible;}
 .gc:nth-child(8n){border-right:none;}
 .gc.hdr{background:#f8fafc;font-weight:700;min-height:50px;position:sticky;top:53px;z-index:10;border-bottom:2px solid var(--border);}
 .gc.hdr:first-child{z-index:11;}
@@ -221,6 +221,13 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
   /* sidebar cards in 2-column grid */
   .sidebar{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   .sidebar .card:first-child,.sidebar .card:nth-child(4){grid-column:1/-1;}
+
+  /* uniform grid row heights on mobile */
+  .gc{height:36px !important;}
+  .gc.hdr{height:46px !important;}
+  .gc.tlbl{height:36px !important;}
+  .grid-con{grid-template-columns:62px repeat(7,1fr);}
+  .daily-bar{grid-template-columns:62px repeat(7,1fr);}
 }
 </style>
 
@@ -595,9 +602,18 @@ function getPerDayCounts(){const p=Array(7).fill(0);students.forEach(s=>{s.perDa
 
 function renderStats(){
   const p=getPerDayCounts(),total=p.reduce((a,b)=>a+b,0);
-  document.getElementById('statsPanel').innerHTML=`
-    <div class="stat-row"><span class="stat-label">Total Students</span><span class="stat-val">${students.length}</span></div>
-    <div class="stat-row"><span class="stat-label">Weekly Classes</span><span class="stat-val">${total}</span></div>
+  const panel=document.getElementById('statsPanel');
+  panel.innerHTML=`
+    <div class="stat-row">
+      <span class="stat-label">Total Students</span>
+      <input type="number" id="statTotalStudents" value="${students.length}" min="0" max="999"
+        style="width:50px;text-align:right;border:1px solid var(--border);border-radius:5px;padding:2px 5px;font-size:11px;font-family:'Maple',sans-serif;font-weight:700;color:#9ca3af;background:var(--bg);">
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Weekly Classes</span>
+      <input type="number" id="statWeeklyClasses" value="${total}" min="0" max="999"
+        style="width:50px;text-align:right;border:1px solid var(--border);border-radius:5px;padding:2px 5px;font-size:11px;font-family:'Maple',sans-serif;font-weight:700;color:#9ca3af;background:var(--bg);">
+    </div>
     <div class="stat-row"><span class="stat-label">Active Days</span><span class="stat-val">${p.filter(x=>x>0).length}</span></div>
     <div class="stat-sec">Classes Per Day</div>
     ${DAYS.map((d,i)=>`<div class="stat-row"><span class="stat-label" style="color:${DAY_COLORS[i]};font-weight:700">${d}</span><span class="stat-val">${p[i]}</span></div>`).join('')}
@@ -1004,6 +1020,11 @@ document.getElementById('waitlistInput').addEventListener('input', () => schedul
 
 // Load on startup
 loadFromFirebase();
+
+</script>
+</body>
+</html>
+
 
 </script>
 </body>
