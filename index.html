@@ -604,7 +604,9 @@ function renderMiniCal(){
 function getPerDayCounts(){const p=Array(7).fill(0);students.forEach(s=>{s.perDay.forEach((v,i)=>p[i]+=v);});return p;}
 
 // Store manual overrides
-let statOverrides = {totalStudents: null, weeklyClasses: null, activeDays: null, perDay: Array(7).fill(null)};
+// Load statOverrides from localStorage
+let statOverrides = JSON.parse(localStorage.getItem('timesync_overrides')||'{"totalStudents":null,"weeklyClasses":null,"activeDays":null,"perDay":[null,null,null,null,null,null,null]}');
+function saveOverrides(){localStorage.setItem('timesync_overrides',JSON.stringify(statOverrides));}
 
 function renderStats(){
   const p=getPerDayCounts(),total=p.reduce((a,b)=>a+b,0);
@@ -630,11 +632,11 @@ function renderStats(){
     </div>`).join('')}
   `;
   // Add change listeners
-  document.getElementById('statActiveDays')?.addEventListener('change',e=>{statOverrides.activeDays=parseInt(e.target.value);scheduleSave();});
-  document.getElementById('statTotalStudents').addEventListener('change',e=>{statOverrides.totalStudents=parseInt(e.target.value);scheduleSave();});
-  document.getElementById('statWeeklyClasses').addEventListener('change',e=>{statOverrides.weeklyClasses=parseInt(e.target.value);scheduleSave();});
+  document.getElementById('statActiveDays')?.addEventListener('change',e=>{statOverrides.activeDays=parseInt(e.target.value);saveOverrides();scheduleSave();});
+  document.getElementById('statTotalStudents').addEventListener('change',e=>{statOverrides.totalStudents=parseInt(e.target.value);saveOverrides();scheduleSave();});
+  document.getElementById('statWeeklyClasses').addEventListener('change',e=>{statOverrides.weeklyClasses=parseInt(e.target.value);saveOverrides();scheduleSave();});
   DAYS.forEach((_,i)=>{
-    document.getElementById(`statDay_${i}`).addEventListener('change',e=>{statOverrides.perDay[i]=parseInt(e.target.value);scheduleSave();});
+    document.getElementById(`statDay_${i}`).addEventListener('change',e=>{statOverrides.perDay[i]=parseInt(e.target.value);saveOverrides();scheduleSave();});
   });
 }
 
@@ -656,7 +658,7 @@ function renderDailyBar(){
       <span class="db-lbl" style="color:${DAY_COLORS[i]}">${d}</span>`;
     bar.appendChild(cell);
     cell.querySelector('input').addEventListener('change',e=>{
-      statOverrides.perDay[i]=parseInt(e.target.value)||0;
+      statOverrides.perDay[i]=parseInt(e.target.value)||0;saveOverrides();
       e.target.style.color=statOverrides.perDay[i]>0?DAY_COLORS[i]:'#9ca3af';
       scheduleSave();
     });
@@ -969,10 +971,27 @@ document.getElementById('nextMonth').addEventListener('click',()=>{calMonth.setM
   document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
 });
 
-function renderAll(){renderMiniCal();renderWeekTitle();renderStats();renderDailyBar();renderGrid();renderStudentList();renderPersonalList();}
+function renderAll(){
+  renderMiniCal();
+  renderWeekTitle();
+  // Don't reset stats/bar if user is currently editing them
+  const focused=document.activeElement;
+  const statsEl=document.getElementById('statsPanel');
+  const barEl=document.getElementById('dailyBarWrap');
+  const editingStats=statsEl?.contains(focused)||barEl?.contains(focused);
+  if(!editingStats){renderStats();renderDailyBar();}
+  renderGrid();
+  renderStudentList();
+  renderPersonalList();
+}
 renderAll();
 
-if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js');
+// Unregister service worker so Firebase always loads fresh
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(regs=>{
+    regs.forEach(reg=>reg.unregister());
+  });
+}
 
 // ── FIREBASE CONFIG ──
 const firebaseConfig = {
@@ -997,6 +1016,7 @@ async function saveToFirebase() {
       classes: JSON.stringify(classes),
       personal: JSON.stringify(personal),
       waitlist: document.getElementById('waitlistInput').value,
+      statOverrides: JSON.stringify(statOverrides),
       updatedAt: new Date().toISOString()
     });
     console.log('Saved to Firebase ✅');
@@ -1017,6 +1037,9 @@ async function loadFromFirebase() {
       if (data.classes) classes = JSON.parse(data.classes);
       if (data.personal) personal = JSON.parse(data.personal);
       if (data.waitlist) document.getElementById('waitlistInput').value = data.waitlist;
+      if (data.statOverrides) {
+        try { statOverrides = JSON.parse(data.statOverrides); saveOverrides(); } catch(e){}
+      }
       renderAll();
       console.log('Loaded from Firebase ✅');
     }
@@ -1042,6 +1065,9 @@ db.collection('timesync').doc(DOC_ID).onSnapshot(doc => {
     if (data.classes) classes = JSON.parse(data.classes);
     if (data.personal) personal = JSON.parse(data.personal);
     if (data.waitlist) document.getElementById('waitlistInput').value = data.waitlist;
+    if (data.statOverrides) {
+      try { statOverrides = JSON.parse(data.statOverrides); saveOverrides(); } catch(e){}
+    }
     renderAll();
   }
 });
