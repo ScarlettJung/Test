@@ -137,8 +137,8 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
 
 /* ── GRID ── */
 .grid-wrap{background:var(--white);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-md);border:1px solid var(--border);}
-.grid-con{display:grid;grid-template-columns:76px repeat(7,1fr);grid-auto-rows:36px;}
-.gc{padding:0;text-align:center;height:36px;max-height:36px;display:flex;align-items:center;justify-content:center;border-right:1px solid var(--border);border-bottom:1px solid var(--border);font-size:9px;position:relative;flex-direction:column;gap:0;overflow:visible;}
+.grid-con{display:grid;grid-template-columns:76px repeat(7,1fr);}
+.gc{padding:0;text-align:center;height:36px;min-height:36px;max-height:36px;box-sizing:border-box;display:block;border-right:1px solid var(--border);border-bottom:1px solid var(--border);font-size:9px;position:relative;overflow:visible;}
 .gc:nth-child(8n){border-right:none;}
 .gc.hdr{background:#f8fafc;font-weight:700;height:50px !important;max-height:50px !important;grid-row-end:span 1;position:sticky;top:0;z-index:10;border-bottom:2px solid var(--border);}
 .gc.hdr:first-child{z-index:11;}
@@ -222,11 +222,11 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
   .sidebar{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   .sidebar .card:first-child,.sidebar .card:nth-child(4){grid-column:1/-1;}
 
-  /* uniform grid row heights on mobile - keep 36px to match JS */
-  .gc{height:36px !important;max-height:36px !important;}
-  .gc.hdr{height:46px !important;max-height:46px !important;}
-  .gc.tlbl{height:36px !important;max-height:36px !important;}
-  .grid-con{grid-template-columns:58px repeat(7,1fr);grid-auto-rows:36px;}
+  /* uniform grid row heights on mobile */
+  .gc{height:36px !important;min-height:36px !important;max-height:36px !important;}
+  .gc.hdr{height:46px !important;min-height:46px !important;max-height:46px !important;}
+  .gc.tlbl{height:36px !important;min-height:36px !important;max-height:36px !important;}
+  .grid-con{grid-template-columns:58px repeat(7,1fr);}
   .daily-bar{grid-template-columns:58px repeat(7,1fr);}
 }
 </style>
