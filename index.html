@@ -674,24 +674,26 @@ function renderGrid(){
   mC.forEach((sp,d)=>sp.forEach(x=>{for(let t=x.s+1;t<x.e;t++)covC[d].add(t);}));
   mP.forEach((sp,d)=>sp.forEach(x=>{for(let t=x.s+1;t<x.e;t++)covP[d].add(t);}));
 
-  // Render rows
+  // Render rows - set explicit height via JS to guarantee uniform rows
+  const ROW_H = 36; // px per row slot
+  const HDR_H = 50; // px for header
   TIME_SLOTS.forEach((slot,ti)=>{
     const tl=document.createElement('div');tl.className='gc tlbl';
+    tl.style.cssText=`height:${ROW_H}px;min-height:${ROW_H}px;max-height:${ROW_H}px;`;
     let h2='';
-    if(showEST)h2+=`<span class="tlbl-est">${slot.edtS}</span>`;
-    if(showKST)h2+=`<span class="tlbl-kst">${slot.kstS}</span>`;
+    if(showEST)h2+=`<span class="tlbl-est" style="font-size:8px;font-weight:700;color:var(--est);font-family:'DM Mono',monospace;white-space:nowrap;display:block;">${slot.edtS}</span>`;
+    if(showKST)h2+=`<span class="tlbl-kst" style="font-size:7px;font-weight:700;color:var(--kst);font-family:'DM Mono',monospace;white-space:nowrap;display:block;">${slot.kstS}</span>`;
     tl.innerHTML=h2;grid.appendChild(tl);
 
     for(let d=0;d<7;d++){
-      const cell=document.createElement('div');cell.className='gc';cell.style.position='relative';cell.style.padding='0';
+      const cell=document.createElement('div');cell.className='gc';cell.style.cssText=`position:relative;padding:0;height:${ROW_H}px;min-height:${ROW_H}px;max-height:${ROW_H}px;`;
 
       const cs=mC[d].find(x=>x.s===ti);
       const ps=mP[d].find(x=>x.s===ti);
 
       if(!covC[d].has(ti)&&cs){
         const span=cs.e-cs.s;
-        const rowH=36; // must match grid-auto-rows
-        const totalH=span*rowH-2;
+        const totalH=span*ROW_H-2;
         const el=document.createElement('div');
         el.className='task-cls merged';
         el.style.cssText=`top:1px;left:1px;right:1px;height:${totalH}px;`;
@@ -703,8 +705,7 @@ function renderGrid(){
 
       if(!covP[d].has(ti)&&ps){
         const span=ps.e-ps.s;
-        const rowH=36;
-        const totalH=span*rowH-2;
+        const totalH=span*ROW_H-2;
         const el=document.createElement('div');el.className='task-per';
         el.style.cssText=`position:absolute;top:1px;left:1px;right:1px;height:${totalH}px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:8px;border-radius:4px;padding:2px;z-index:2;`;
         el.style.background=ps.color+'28';el.style.color=ps.color;el.style.border=`1px solid ${ps.color}55`;
