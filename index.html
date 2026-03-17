@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Scarlett's TimeSync Scheduler</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TimeSync</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="TimeSync">
+<meta name="theme-color" content="#4f7ef8">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -178,6 +184,80 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
 .count-row label{font-size:9px;font-weight:700;color:var(--muted);}
 .count-row input{padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:'Maple',sans-serif;text-align:center;width:100%;}
 .count-row input:focus{outline:none;border-color:var(--accent);}
+
+/* ── MOBILE OVERRIDES ── */
+html, body { height: 100%; overflow-x: hidden; }
+body { font-size: 12px; }
+
+/* Make main layout stack vertically on mobile */
+@media (max-width: 768px) {
+  .app-header { padding: 8px 12px; position: sticky; top: 0; z-index: 200; }
+  .app-header .logo-area h2 { font-size: 12px; }
+  .app-header .logo-area p { display: none; }
+  .clock-badge { padding: 3px 6px; font-size: 9px; }
+  
+  .main-layout {
+    flex-direction: column !important;
+    padding: 8px !important;
+    gap: 8px !important;
+    padding-bottom: 80px !important;
+  }
+  
+  .sidebar {
+    width: 100% !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  
+  .sidebar .card { flex: 1; min-width: calc(50% - 4px); }
+  
+  /* Mini calendar takes full width */
+  .sidebar .card:first-child { min-width: 100%; }
+  
+  /* Stats card */
+  #statsPanel .stat-sec { font-size: 8px; }
+  
+  .schedule-area { width: 100%; }
+  
+  .week-nav { padding: 7px 10px; gap: 5px; }
+  #weekTitle { font-size: 11px; min-width: 120px; }
+  
+  /* Grid cells smaller */
+  .gc { min-height: 32px; }
+  .gc.hdr { min-height: 42px; }
+  .tkst { font-size: 7px; }
+  .test { font-size: 6px; }
+  .hdr-day { font-size: 7px; }
+  .hdr-date { font-size: 12px; width: 22px; height: 22px; }
+  .task-cls { font-size: 7px; }
+  
+  /* grid time column narrower */
+  .grid-con { grid-template-columns: 58px repeat(7, 1fr); }
+  .daily-bar { grid-template-columns: 58px repeat(7, 1fr); }
+  
+  /* Buttons full width */
+  .header-btns { gap: 5px; }
+  .btn { padding: 6px 8px; font-size: 10px; }
+  
+  /* Modal from bottom */
+  .modal-ov { align-items: flex-end; }
+  .modal { border-radius: 20px 20px 0 0; max-height: 85vh; overflow-y: auto; width: 100%; padding: 16px; }
+  .modal::before {
+    content: '';
+    display: block;
+    width: 36px; height: 4px;
+    background: #d1d5db;
+    border-radius: 2px;
+    margin: 0 auto 14px;
+  }
+  
+  /* Student items bigger touch targets */
+  .s-item { padding: 8px 0; }
+  .s-name { font-size: 12px; }
+  .s-sess { font-size: 10px; padding: 3px 7px; }
+}
+
 </style>
 </head>
 <body>
@@ -756,5 +836,12 @@ window.addEventListener('appinstalled', () => {
   document.getElementById('installBanner').style.display = 'none';
 });
 </script>
+
+<script>
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+</script>
+
 </body>
+</html>
+
 </html>
