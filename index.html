@@ -392,30 +392,55 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
   </div>
 </div></div>
 
-<!-- EDIT CLASS MODAL (click on class block) -->
+<!-- EDIT CLASS MODAL -->
 <div id="editClassModal" class="modal-ov"><div class="modal">
-  <h3>Edit Class</h3>
-  <div class="fg"><label>Student Name</label><input type="text" id="ecName" placeholder="Student name..."></div>
-  <div class="fg-row">
-    <div class="fg"><label>Day</label><select id="ecDay">
-      <option value="0">Sunday</option><option value="1">Monday</option>
-      <option value="2">Tuesday</option><option value="3">Wednesday</option>
-      <option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
-    </select></div>
-    <div class="fg"><label>Start Time (EDT)</label><select id="ecTimeStart"></select></div>
-  </div>
-  <div class="fg"><label>End Time (EDT)</label><select id="ecTimeEnd"></select></div>
-  <div class="fg" style="padding:6px 10px;background:var(--bg);border-radius:8px;font-size:11px;color:var(--muted);" id="ecRepeatInfo"></div>
+  <!-- Edit View -->
+  <div id="editClassView">
+    <h3>Edit Class</h3>
+    <div class="fg"><label>Student Name</label><input type="text" id="ecName" placeholder="Student name..."></div>
+    <div class="fg-row">
+      <div class="fg"><label>Day</label><select id="ecDay">
+        <option value="0">Sunday</option><option value="1">Monday</option>
+        <option value="2">Tuesday</option><option value="3">Wednesday</option>
+        <option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
+      </select></div>
+      <div class="fg"><label>Start Time (EDT)</label><select id="ecTimeStart"></select></div>
+    </div>
+    <div class="fg"><label>End Time (EDT)</label><select id="ecTimeEnd"></select></div>
     <div class="fg" style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--accent-light);border-radius:8px;">
-    <input type="checkbox" id="ecRecurring" style="width:18px;height:18px;cursor:pointer;accent-color:var(--accent);">
-    <label style="font-size:12px;font-weight:600;cursor:pointer;color:var(--accent);" for="ecRecurring">Repeat weekly</label>
+      <input type="checkbox" id="ecRecurring" style="width:18px;height:18px;cursor:pointer;accent-color:var(--accent);">
+      <label style="font-size:12px;font-weight:600;cursor:pointer;color:var(--accent);" for="ecRecurring">Repeat weekly</label>
+    </div>
+    <div class="modal-btns">
+      <button class="cancel-btn" id="closeEditClassModal">Cancel</button>
+      <button class="btn btn-secondary" id="deleteClassBtn" style="color:#ef4444;border-color:#ef4444;">Delete</button>
+      <button class="btn btn-primary" id="saveEditClassBtn">Save</button>
+    </div>
   </div>
-  <div class="modal-btns">
-    <button class="cancel-btn" id="closeEditClassModal">Cancel</button>
-    <button class="btn btn-secondary" id="deleteClassBtn" style="color:#ef4444;border-color:#ef4444;">Delete</button>
-    <button class="btn btn-primary" id="saveEditClassBtn">Save</button>
+  <!-- Delete Options View -->
+  <div id="deleteClassView" style="display:none;">
+    <h3 id="deleteClassViewTitle">Delete Class</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">This repeats weekly. Choose how to delete:</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button id="btn_deleteThisWeek" style="background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;text-align:left;cursor:pointer;font-family:'Maple',sans-serif;width:100%;">
+        <div style="font-size:13px;font-weight:700;">📅 This week only</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Other weeks are not affected</div>
+      </button>
+      <button id="btn_deleteFromNow" style="background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;text-align:left;cursor:pointer;font-family:'Maple',sans-serif;width:100%;">
+        <div style="font-size:13px;font-weight:700;">➡️ This week & all future</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Past weeks stay</div>
+      </button>
+      <button id="btn_deleteAll" style="background:#fff;border:1.5px solid #ef4444;border-radius:10px;padding:12px 14px;text-align:left;cursor:pointer;font-family:'Maple',sans-serif;width:100%;">
+        <div style="font-size:13px;font-weight:700;color:#ef4444;">🗑️ All weeks</div>
+        <div style="font-size:11px;color:#ef4444;opacity:.7;margin-top:2px;">Remove completely</div>
+      </button>
+    </div>
+    <div class="modal-btns" style="margin-top:14px;">
+      <button class="cancel-btn" id="btn_backToEdit">← Back</button>
+    </div>
   </div>
 </div></div>
+
 
 <!-- PERSONAL EVENT MODAL -->
 <div id="personalModal" class="modal-ov"><div class="modal">
@@ -425,7 +450,8 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
     <div class="fg"><label>Day</label><select id="pDay">
       <option value="0">Sunday</option><option value="1">Monday</option>
       <option value="2">Tuesday</option><option value="3">Wednesday</option>
-      <option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
+      <option value="4">Thursday</option><option value="5">Friday</option>
+      <option value="6">Saturday</option>
     </select></div>
     <div class="fg"><label>Start Time (EDT)</label><select id="pTimeStart"></select></div>
   </div>
@@ -435,12 +461,15 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
     <div class="cp-row" id="colorPicker"></div>
     <div class="cc-row"><label>Custom:</label><input type="color" id="pColorCustom" value="#a78bfa" style="width:32px;height:26px;padding:2px;border:1px solid var(--border);border-radius:6px;cursor:pointer;"></div>
   </div>
+  <div class="fg" style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--accent-light);border-radius:8px;">
+    <input type="checkbox" id="pRecurring" style="width:18px;height:18px;cursor:pointer;accent-color:var(--accent);">
+    <label style="font-size:12px;font-weight:600;cursor:pointer;color:var(--accent);" for="pRecurring">Repeat weekly</label>
+  </div>
   <div class="modal-btns">
     <button class="cancel-btn" id="closePersonalModal">Cancel</button>
     <button class="btn btn-primary" id="savePersonalBtn">Save</button>
   </div>
 </div></div>
-
 
 <!-- EDIT PERSONAL MODAL -->
 <div id="editPersonalModal" class="modal-ov"><div class="modal">
@@ -472,28 +501,6 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
 </div></div>
 
 
-<!-- DELETE CHOICE MODAL -->
-<div id="deleteChoiceModal" class="modal-ov"><div class="modal">
-  <h3 id="deleteChoiceTitle">Delete Class</h3>
-  <p id="deleteChoiceDesc" style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6;"></p>
-  <div style="display:flex;flex-direction:column;gap:8px;">
-    <button id="deleteThisWeek" class="btn btn-secondary" style="text-align:left;padding:12px 14px;border-radius:10px;font-size:12px;">
-      📅 This week only
-      <div style="font-size:10px;color:var(--muted);font-weight:400;margin-top:2px;">Other weeks stay</div>
-    </button>
-    <button id="deleteFromNow" class="btn btn-secondary" style="text-align:left;padding:12px 14px;border-radius:10px;font-size:12px;">
-      ➡️ This week & future weeks
-      <div style="font-size:10px;color:var(--muted);font-weight:400;margin-top:2px;">Past weeks stay</div>
-    </button>
-    <button id="deleteAllWeeks" class="btn btn-secondary" style="text-align:left;padding:12px 14px;border-radius:10px;font-size:12px;color:#ef4444;border-color:#ef4444;">
-      🗑️ All weeks
-      <div style="font-size:10px;color:#ef4444;font-weight:400;margin-top:2px;">Remove completely</div>
-    </button>
-  </div>
-  <div class="modal-btns" style="margin-top:14px;">
-    <button class="cancel-btn" id="closeDeleteChoiceModal">Cancel</button>
-  </div>
-</div></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
@@ -1020,7 +1027,10 @@ function openEditClassModal(cls, weekKey){
   if(ecRec) ecRec.checked = isRecurring;
   document.getElementById('editClassModal').classList.add('open');
 }
-document.getElementById('closeEditClassModal').addEventListener('click',()=>document.getElementById('editClassModal').classList.remove('open'));
+document.getElementById('closeEditClassModal').addEventListener('click',()=>{
+  document.getElementById('editClassModal').classList.remove('open');
+});
+
 document.getElementById('saveEditClassBtn').addEventListener('click',()=>{
   if(!editingClassKey)return;
   const idx=classes.indexOf(editingClassKey);
@@ -1038,22 +1048,63 @@ document.getElementById('saveEditClassBtn').addEventListener('click',()=>{
       else delete classes[idx].weekKey;
     }
   }
-  document.getElementById('editClassModal').classList.remove('open');renderAll();scheduleSave();
-});
-document.getElementById('deleteClassBtn').addEventListener('click',()=>{
-  if(!editingClassKey)return;
-  if(!editingClassKey) return;
-  const clsToDelete = editingClassKey; // save reference before modal closes
-  const isRecurring = clsToDelete.recurring !== false;
   document.getElementById('editClassModal').classList.remove('open');
+  renderAll();scheduleSave();
+});
+
+document.getElementById('deleteClassBtn').addEventListener('click',()=>{
+  if(!editingClassKey) return;
+  const cls = editingClassKey;
+  const isRecurring = cls.recurring !== false;
   if(isRecurring){
-    setTimeout(()=>openDeleteChoiceModal(clsToDelete, 'class'), 150);
+    // Show delete options INSIDE the same modal
+    document.getElementById('deleteClassViewTitle').textContent = 'Delete "' + cls.n + '"';
+    document.getElementById('editClassView').style.display='none';
+    document.getElementById('deleteClassView').style.display='block';
   } else {
-    if(confirm(`Delete "${clsToDelete.n}"?`)){
-      classes = classes.filter(c=>c!==clsToDelete);
+    if(confirm('Delete "' + cls.n + '"?')){
+      classes = classes.filter(c=>c!==cls);
+      document.getElementById('editClassModal').classList.remove('open');
       renderAll();scheduleSave();
     }
   }
+});
+
+document.getElementById('btn_backToEdit').addEventListener('click',()=>{
+  document.getElementById('editClassView').style.display='block';
+  document.getElementById('deleteClassView').style.display='none';
+});
+
+document.getElementById('btn_deleteThisWeek').addEventListener('click',()=>{
+  if(!editingClassKey) return;
+  const idx = classes.indexOf(editingClassKey);
+  const cls = idx>=0 ? classes[idx] : editingClassKey;
+  if(!cls.skipWeeks) cls.skipWeeks=[];
+  cls.skipWeeks.push(getWeekKey(currentWeekStart));
+  document.getElementById('editClassModal').classList.remove('open');
+  document.getElementById('editClassView').style.display='block';
+  document.getElementById('deleteClassView').style.display='none';
+  renderAll();scheduleSave();
+});
+
+document.getElementById('btn_deleteFromNow').addEventListener('click',()=>{
+  if(!editingClassKey) return;
+  const idx = classes.indexOf(editingClassKey);
+  if(idx>=0) classes[idx].endWeek = getWeekKey(currentWeekStart);
+  else editingClassKey.endWeek = getWeekKey(currentWeekStart);
+  document.getElementById('editClassModal').classList.remove('open');
+  document.getElementById('editClassView').style.display='block';
+  document.getElementById('deleteClassView').style.display='none';
+  renderAll();scheduleSave();
+});
+
+document.getElementById('btn_deleteAll').addEventListener('click',()=>{
+  if(!editingClassKey) return;
+  classes = classes.filter(c=>c!==editingClassKey);
+  document.getElementById('editClassModal').classList.remove('open');
+  document.getElementById('editClassView').style.display='block';
+  document.getElementById('deleteClassView').style.display='none';
+  renderAll();scheduleSave();
 });
 
 // ── PERSONAL EVENT ──
@@ -1212,13 +1263,13 @@ document.getElementById('saveEditPersonalBtn')?.addEventListener('click',()=>{
 });
 document.getElementById('deletePersonalBtn')?.addEventListener('click',()=>{
   if(!editingPersonal)return;
-  const perToDelete = editingPersonal;
+  const per = editingPersonal;
   document.getElementById('editPersonalModal').classList.remove('open');
-  if(perToDelete.recurring !== false){
-    setTimeout(()=>openDeleteChoiceModal(perToDelete, 'personal'), 150);
+  if(per.recurring !== false){
+    showDeleteModal(per, 'personal');
   } else {
-    if(confirm(`Delete "${perToDelete.title}"?`)){
-      personal=personal.filter(p=>p!==perToDelete);
+    if(confirm('Delete "' + per.title + '"?')){
+      personal=personal.filter(p=>p!==per);
       renderAll();scheduleSave();
     }
   }
@@ -1227,55 +1278,6 @@ document.getElementById('closeEditPersonalModal')?.addEventListener('click',()=>
 document.getElementById('editPersonalModal')?.addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
 
 
-// ── DELETE CHOICE MODAL ──
-let deleteTarget = null;
-let deleteType = null; // 'class' or 'personal'
-
-function openDeleteChoiceModal(item, type){
-  deleteTarget = item;
-  deleteType = type;
-  if(!item){console.error('openDeleteChoiceModal: item is null!');return;}
-  const name = type==='class' ? item.n : item.title;
-  document.getElementById('deleteChoiceTitle').textContent = `Delete "${name}"`;
-  document.getElementById('deleteChoiceDesc').textContent = 
-    `This is a recurring ${type}. Choose how to delete:`;
-  document.getElementById('deleteChoiceModal').classList.add('open');
-}
-
-document.getElementById('deleteThisWeek')?.addEventListener('click',()=>{
-  if(!deleteTarget) return;
-  // Skip this week only
-  if(!deleteTarget.skipWeeks) deleteTarget.skipWeeks=[];
-  deleteTarget.skipWeeks.push(getWeekKey(currentWeekStart));
-  document.getElementById('deleteChoiceModal').classList.remove('open');
-  renderAll();scheduleSave();
-});
-
-document.getElementById('deleteFromNow')?.addEventListener('click',()=>{
-  if(!deleteTarget) return;
-  // Set endWeek - don't show from this week onwards
-  deleteTarget.endWeek = getWeekKey(currentWeekStart);
-  document.getElementById('deleteChoiceModal').classList.remove('open');
-  renderAll();scheduleSave();
-});
-
-document.getElementById('deleteAllWeeks')?.addEventListener('click',()=>{
-  if(!deleteTarget) return;
-  if(deleteType==='class'){
-    classes = classes.filter(c=>c!==deleteTarget);
-  } else {
-    personal = personal.filter(p=>p!==deleteTarget);
-  }
-  document.getElementById('deleteChoiceModal').classList.remove('open');
-  renderAll();scheduleSave();
-});
-
-document.getElementById('closeDeleteChoiceModal')?.addEventListener('click',()=>{
-  document.getElementById('deleteChoiceModal').classList.remove('open');
-});
-document.getElementById('deleteChoiceModal')?.addEventListener('click',e=>{
-  if(e.target===e.currentTarget) e.currentTarget.classList.remove('open');
-});
 
 // Unregister service worker so Firebase always loads fresh
 if('serviceWorker' in navigator){
@@ -1325,8 +1327,15 @@ async function loadFromFirebase() {
     if (doc.exists) {
       const data = doc.data();
       if (data.students) students = JSON.parse(data.students);
-      if (data.classes) classes = JSON.parse(data.classes);
-      if (data.personal) personal = JSON.parse(data.personal);
+      if (data.classes) {
+        classes = JSON.parse(data.classes);
+        // Fix: if recurring is undefined or missing, treat as true
+        classes.forEach(c=>{ if(c.recurring===undefined) c.recurring=true; });
+      }
+      if (data.personal) {
+        personal = JSON.parse(data.personal);
+        personal.forEach(p=>{ if(p.recurring===undefined) p.recurring=true; });
+      }
       if (data.waitlist) document.getElementById('waitlistInput').value = data.waitlist;
       if (data.statOverrides) {
         try { statOverrides = JSON.parse(data.statOverrides); saveOverrides(); } catch(e){}
@@ -1349,17 +1358,29 @@ async function loadFromFirebase() {
 }
 
 // ── REAL-TIME LISTENER ──
+let lastLocalEdit = 0; // timestamp of last local edit
 db.collection('timesync').doc(DOC_ID).onSnapshot(doc => {
   if (doc.exists) {
     const data = doc.data();
-    if (data.students) students = JSON.parse(data.students);
-    if (data.classes) classes = JSON.parse(data.classes);
-    if (data.personal) personal = JSON.parse(data.personal);
-    if (data.waitlist) document.getElementById('waitlistInput').value = data.waitlist;
-    if (data.statOverrides) {
-      try { statOverrides = JSON.parse(data.statOverrides); saveOverrides(); } catch(e){}
+    const timeSinceEdit = Date.now() - lastLocalEdit;
+    // Don't overwrite local changes for 3 seconds after edit
+    if(timeSinceEdit > 3000) {
+      if (data.students) students = JSON.parse(data.students);
+      if (data.classes) {
+        classes = JSON.parse(data.classes);
+        // Fix: if recurring is undefined or missing, treat as true
+        classes.forEach(c=>{ if(c.recurring===undefined) c.recurring=true; });
+      }
+      if (data.personal) {
+        personal = JSON.parse(data.personal);
+        personal.forEach(p=>{ if(p.recurring===undefined) p.recurring=true; });
+      }
+      if (data.waitlist) document.getElementById('waitlistInput').value = data.waitlist;
+      if (data.statOverrides) {
+        try { statOverrides = JSON.parse(data.statOverrides); saveOverrides(); } catch(e){}
+      }
+      renderAll();
     }
-    renderAll();
   }
 });
 
@@ -1378,6 +1399,7 @@ function renderAll() {
 // Save on any data change - debounced
 let saveTimer;
 function scheduleSave() {
+  lastLocalEdit = Date.now();
   clearTimeout(saveTimer);
   saveTimer = setTimeout(saveToFirebase, 800);
 }
@@ -1389,7 +1411,7 @@ document.getElementById('saveRenameBtn').addEventListener('click', () => setTime
 document.getElementById('saveNewStudent').addEventListener('click', () => setTimeout(scheduleSave, 100), true);
 document.getElementById('saveClassBtn').addEventListener('click', () => setTimeout(scheduleSave, 100), true);
 document.getElementById('saveEditClassBtn').addEventListener('click', () => setTimeout(scheduleSave, 100), true);
-document.getElementById('deleteClassBtn').addEventListener('click', () => setTimeout(scheduleSave, 100), true);
+document.
 document.getElementById('savePersonalBtn').addEventListener('click', () => setTimeout(scheduleSave, 100), true);
 document.getElementById('waitlistInput').addEventListener('input', () => scheduleSave());
 
