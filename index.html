@@ -471,6 +471,30 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
   </div>
 </div></div>
 
+
+<!-- DELETE CHOICE MODAL -->
+<div id="deleteChoiceModal" class="modal-ov"><div class="modal">
+  <h3 id="deleteChoiceTitle">Delete Class</h3>
+  <p id="deleteChoiceDesc" style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6;"></p>
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    <button id="deleteThisWeek" class="btn btn-secondary" style="text-align:left;padding:12px 14px;border-radius:10px;font-size:12px;">
+      📅 This week only
+      <div style="font-size:10px;color:var(--muted);font-weight:400;margin-top:2px;">Other weeks stay</div>
+    </button>
+    <button id="deleteFromNow" class="btn btn-secondary" style="text-align:left;padding:12px 14px;border-radius:10px;font-size:12px;">
+      ➡️ This week & future weeks
+      <div style="font-size:10px;color:var(--muted);font-weight:400;margin-top:2px;">Past weeks stay</div>
+    </button>
+    <button id="deleteAllWeeks" class="btn btn-secondary" style="text-align:left;padding:12px 14px;border-radius:10px;font-size:12px;color:#ef4444;border-color:#ef4444;">
+      🗑️ All weeks
+      <div style="font-size:10px;color:#ef4444;font-weight:400;margin-top:2px;">Remove completely</div>
+    </button>
+  </div>
+  <div class="modal-btns" style="margin-top:14px;">
+    <button class="cancel-btn" id="closeDeleteChoiceModal">Cancel</button>
+  </div>
+</div></div>
+
 <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
 <script>
@@ -763,20 +787,16 @@ function renderGrid(){
   for(let d=0;d<7;d++){
     classes.filter(c=>{
       if(c.d!==d) return false;
-      // If recurring is explicitly false, only show for its weekKey
-      if(c.recurring===false){
-        return c.weekKey===thisWeekKey;
-      }
-      // recurring=true or undefined = show every week (unless skipped)
+      if(c.recurring===false) return c.weekKey===thisWeekKey;
       if(c.skipWeeks && c.skipWeeks.includes(thisWeekKey)) return false;
+      if(c.endWeek && thisWeekKey>=c.endWeek) return false;
       return true;
     }).forEach(c=>mC[d].push({name:c.n,s:c.s,e:c.e,orig:c}));
     personal.filter(p=>{
       if(p.d!==d) return false;
-      if(p.recurring===false){
-        return p.weekKey===thisWeekKey;
-      }
+      if(p.recurring===false) return p.weekKey===thisWeekKey;
       if(p.skipWeeks && p.skipWeeks.includes(thisWeekKey)) return false;
+      if(p.endWeek && thisWeekKey>=p.endWeek) return false;
       return true;
     }).forEach(p=>mP[d].push({name:p.title,color:p.color,s:p.s,e:p.e,orig:p}));
   }
@@ -1022,20 +1042,18 @@ document.getElementById('saveEditClassBtn').addEventListener('click',()=>{
 });
 document.getElementById('deleteClassBtn').addEventListener('click',()=>{
   if(!editingClassKey)return;
-  const isRecurring = editingClassKey.recurring !== false;
+  if(!editingClassKey) return;
+  const clsToDelete = editingClassKey; // save reference before modal closes
+  const isRecurring = clsToDelete.recurring !== false;
+  document.getElementById('editClassModal').classList.remove('open');
   if(isRecurring){
-    const choice = confirm(`"${editingClassKey.n}" — Delete class?\n\nOK = Delete all weeks\nCancel = Skip this week only`);
-    if(choice){
-      classes = classes.filter(c=>c!==editingClassKey);
-    } else {
-      if(!editingClassKey.skipWeeks) editingClassKey.skipWeeks=[];
-      editingClassKey.skipWeeks.push(getWeekKey(currentWeekStart));
-    }
+    setTimeout(()=>openDeleteChoiceModal(clsToDelete, 'class'), 150);
   } else {
-    if(!confirm(`Delete "${editingClassKey.n}"?`)) return;
-    classes = classes.filter(c=>c!==editingClassKey);
+    if(confirm(`Delete "${clsToDelete.n}"?`)){
+      classes = classes.filter(c=>c!==clsToDelete);
+      renderAll();scheduleSave();
+    }
   }
-  document.getElementById('editClassModal').classList.remove('open');renderAll();scheduleSave();
 });
 
 // ── PERSONAL EVENT ──
@@ -1194,14 +1212,70 @@ document.getElementById('saveEditPersonalBtn')?.addEventListener('click',()=>{
 });
 document.getElementById('deletePersonalBtn')?.addEventListener('click',()=>{
   if(!editingPersonal)return;
-  if(confirm(`Delete "${editingPersonal.title}"?`)){
-    personal=personal.filter(p=>p!==editingPersonal);
-    document.getElementById('editPersonalModal').classList.remove('open');
-    renderAll();scheduleSave();
+  const perToDelete = editingPersonal;
+  document.getElementById('editPersonalModal').classList.remove('open');
+  if(perToDelete.recurring !== false){
+    setTimeout(()=>openDeleteChoiceModal(perToDelete, 'personal'), 150);
+  } else {
+    if(confirm(`Delete "${perToDelete.title}"?`)){
+      personal=personal.filter(p=>p!==perToDelete);
+      renderAll();scheduleSave();
+    }
   }
 });
 document.getElementById('closeEditPersonalModal')?.addEventListener('click',()=>document.getElementById('editPersonalModal').classList.remove('open'));
 document.getElementById('editPersonalModal')?.addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
+
+
+// ── DELETE CHOICE MODAL ──
+let deleteTarget = null;
+let deleteType = null; // 'class' or 'personal'
+
+function openDeleteChoiceModal(item, type){
+  deleteTarget = item;
+  deleteType = type;
+  if(!item){console.error('openDeleteChoiceModal: item is null!');return;}
+  const name = type==='class' ? item.n : item.title;
+  document.getElementById('deleteChoiceTitle').textContent = `Delete "${name}"`;
+  document.getElementById('deleteChoiceDesc').textContent = 
+    `This is a recurring ${type}. Choose how to delete:`;
+  document.getElementById('deleteChoiceModal').classList.add('open');
+}
+
+document.getElementById('deleteThisWeek')?.addEventListener('click',()=>{
+  if(!deleteTarget) return;
+  // Skip this week only
+  if(!deleteTarget.skipWeeks) deleteTarget.skipWeeks=[];
+  deleteTarget.skipWeeks.push(getWeekKey(currentWeekStart));
+  document.getElementById('deleteChoiceModal').classList.remove('open');
+  renderAll();scheduleSave();
+});
+
+document.getElementById('deleteFromNow')?.addEventListener('click',()=>{
+  if(!deleteTarget) return;
+  // Set endWeek - don't show from this week onwards
+  deleteTarget.endWeek = getWeekKey(currentWeekStart);
+  document.getElementById('deleteChoiceModal').classList.remove('open');
+  renderAll();scheduleSave();
+});
+
+document.getElementById('deleteAllWeeks')?.addEventListener('click',()=>{
+  if(!deleteTarget) return;
+  if(deleteType==='class'){
+    classes = classes.filter(c=>c!==deleteTarget);
+  } else {
+    personal = personal.filter(p=>p!==deleteTarget);
+  }
+  document.getElementById('deleteChoiceModal').classList.remove('open');
+  renderAll();scheduleSave();
+});
+
+document.getElementById('closeDeleteChoiceModal')?.addEventListener('click',()=>{
+  document.getElementById('deleteChoiceModal').classList.remove('open');
+});
+document.getElementById('deleteChoiceModal')?.addEventListener('click',e=>{
+  if(e.target===e.currentTarget) e.currentTarget.classList.remove('open');
+});
 
 // Unregister service worker so Firebase always loads fresh
 if('serviceWorker' in navigator){
