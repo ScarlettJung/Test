@@ -546,6 +546,7 @@ let calMonth=new Date(2026,2,1);
 let currentWeekStart=getWeekStart(new Date());
 let editingStudentIdx=null,renamingStudentIdx=null;
 let editingClassKey=null; // {dayIdx, startSlot, name}
+let editingClassWeekKey=null;
 let selectedColor=PRESET_COLORS[0];
 
 // students: {id, name, total, perDay[7]}
@@ -1043,8 +1044,25 @@ document.getElementById('saveClassBtn').addEventListener('click',()=>{
 });
 
 // ── EDIT CLASS (click on block) ──
+function detachRecurringClassForWeek(cls, weekKey){
+  if(!cls || cls.recurring === false) return cls;
+  if(!cls.skipWeeks) cls.skipWeeks = [];
+  if(!cls.skipWeeks.includes(weekKey)) cls.skipWeeks.push(weekKey);
+  const detached = {
+    d: cls.d,
+    s: cls.s,
+    e: cls.e,
+    n: cls.n,
+    recurring: false,
+    weekKey: weekKey
+  };
+  classes.push(detached);
+  return detached;
+}
+
 function openEditClassModal(cls, weekKey){
   editingClassKey=cls;
+  editingClassWeekKey=weekKey || getWeekKey(currentWeekStart);
   document.getElementById('ecName').value=cls.n;
   document.getElementById('ecDay').value=cls.d;
   // Find matching slot index
@@ -1055,16 +1073,30 @@ function openEditClassModal(cls, weekKey){
   const repeatInfo = document.getElementById('ecRepeatInfo');
   if(repeatInfo) repeatInfo.textContent = isRecurring ? '🔁 Repeats weekly' : '1️⃣ This week only';
   const ecRec = document.getElementById('ecRecurring');
-  if(ecRec) ecRec.checked = isRecurring;
+  if(ecRec){
+    ecRec.checked = isRecurring;
+    ecRec.disabled = isRecurring;
+    ecRec.parentElement.style.opacity = isRecurring ? '0.6' : '1';
+  }
   document.getElementById('editClassModal').classList.add('open');
 }
 document.getElementById('closeEditClassModal').addEventListener('click',()=>{
+  editingClassKey=null;
+  editingClassWeekKey=null;
   document.getElementById('editClassModal').classList.remove('open');
 });
 
 document.getElementById('saveEditClassBtn').addEventListener('click',()=>{
   if(!editingClassKey)return;
-  const idx=classes.indexOf(editingClassKey);
+  const editWeekKey = editingClassWeekKey || getWeekKey(currentWeekStart);
+  let target = editingClassKey;
+
+  // If this is a recurring class, first detach only this week.
+  if(target.recurring !== false){
+    target = detachRecurringClassForWeek(target, editWeekKey);
+  }
+
+  const idx=classes.indexOf(target);
   if(idx>=0){
     const newName=document.getElementById('ecName').value.trim();
     if(newName)classes[idx].n=newName;
@@ -1072,13 +1104,11 @@ document.getElementById('saveEditClassBtn').addEventListener('click',()=>{
     classes[idx].s=parseInt(document.getElementById('ecTimeStart').value);
     classes[idx].e=parseInt(document.getElementById('ecTimeEnd').value);
     if(classes[idx].e<=classes[idx].s)classes[idx].e=classes[idx].s+1;
-    const ecRec=document.getElementById('ecRecurring');
-    if(ecRec){
-      classes[idx].recurring=ecRec.checked;
-      if(!ecRec.checked) classes[idx].weekKey=getWeekKey(currentWeekStart);
-      else delete classes[idx].weekKey;
-    }
+    classes[idx].recurring=false;
+    classes[idx].weekKey=editWeekKey;
   }
+  editingClassKey=null;
+  editingClassWeekKey=null;
   document.getElementById('editClassModal').classList.remove('open');
   renderAll();scheduleSave();
 });
@@ -1095,6 +1125,8 @@ document.getElementById('deleteClassBtn').addEventListener('click',()=>{
   } else {
     if(confirm('Delete "' + cls.n + '"?')){
       classes = classes.filter(c=>c!==cls);
+      editingClassKey=null;
+      editingClassWeekKey=null;
       document.getElementById('editClassModal').classList.remove('open');
       renderAll();scheduleSave();
     }
@@ -1108,10 +1140,16 @@ document.getElementById('btn_backToEdit').addEventListener('click',()=>{
 
 document.getElementById('btn_deleteThisWeek').addEventListener('click',()=>{
   if(!editingClassKey) return;
-  const idx = classes.indexOf(editingClassKey);
-  const cls = idx>=0 ? classes[idx] : editingClassKey;
-  if(!cls.skipWeeks) cls.skipWeeks=[];
-  cls.skipWeeks.push(getWeekKey(currentWeekStart));
+  const cls = editingClassKey;
+  const editWeekKey = editingClassWeekKey || getWeekKey(currentWeekStart);
+  if(cls.recurring !== false){
+    if(!cls.skipWeeks) cls.skipWeeks=[];
+    if(!cls.skipWeeks.includes(editWeekKey)) cls.skipWeeks.push(editWeekKey);
+  } else {
+    classes = classes.filter(c=>c!==cls);
+  }
+  editingClassKey=null;
+  editingClassWeekKey=null;
   document.getElementById('editClassModal').classList.remove('open');
   document.getElementById('editClassView').style.display='block';
   document.getElementById('deleteClassView').style.display='none';
@@ -1123,6 +1161,8 @@ document.getElementById('btn_deleteFromNow').addEventListener('click',()=>{
   const idx = classes.indexOf(editingClassKey);
   if(idx>=0) classes[idx].endWeek = getWeekKey(currentWeekStart);
   else editingClassKey.endWeek = getWeekKey(currentWeekStart);
+  editingClassKey=null;
+  editingClassWeekKey=null;
   document.getElementById('editClassModal').classList.remove('open');
   document.getElementById('editClassView').style.display='block';
   document.getElementById('deleteClassView').style.display='none';
@@ -1132,6 +1172,8 @@ document.getElementById('btn_deleteFromNow').addEventListener('click',()=>{
 document.getElementById('btn_deleteAll').addEventListener('click',()=>{
   if(!editingClassKey) return;
   classes = classes.filter(c=>c!==editingClassKey);
+  editingClassKey=null;
+  editingClassWeekKey=null;
   document.getElementById('editClassModal').classList.remove('open');
   document.getElementById('editClassView').style.display='block';
   document.getElementById('deleteClassView').style.display='none';
