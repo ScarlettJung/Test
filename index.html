@@ -322,7 +322,7 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
 <!-- ADD / EDIT CLASS MODAL -->
 <div id="classModal" class="modal-ov"><div class="modal">
   <h3 id="classModalTitle">Add Class</h3>
-  <div class="fg"><label>Student Name</label><input type="text" id="fName" placeholder="e.g. Hailey, Elie..."></div>
+  <div class="fg"><label>Student Name <span style="font-weight:400;font-size:9px;color:var(--muted)">(schedule only — not linked to student list)</span></label><input type="text" id="fName" placeholder="e.g. Hailey, Elie..."></div>
   <div class="fg-row">
     <div class="fg"><label>Day</label><select id="fDay">
       <option value="0">Sunday</option><option value="1">Monday</option>
@@ -332,9 +332,6 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
     <div class="fg"><label>Start Time (EDT)</label><select id="fTimeStart"></select></div>
   </div>
   <div class="fg"><label>End Time (EDT)</label><select id="fTimeEnd"></select></div>
-  <div class="fg"><label>Total Classes in Package</label>
-    <div class="sess-row"><input type="number" id="fTotalClasses" value="8" min="1" max="999"><span>classes</span></div>
-  </div>
   <div class="fg" style="display:flex;align-items:center;gap:8px;">
     <input type="checkbox" id="fRecurring" style="width:18px;height:18px;cursor:pointer;accent-color:var(--accent);">
     <label style="font-size:12px;font-weight:600;cursor:pointer;" for="fRecurring">Repeat weekly</label>
@@ -349,9 +346,10 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
 <div id="addStudentModal" class="modal-ov"><div class="modal">
   <h3>Add Student</h3>
   <div class="fg"><label>Name</label><input type="text" id="newStudentName" placeholder="e.g. Hailey, Joel..."></div>
-  <div class="fg"><label>Total Sessions</label>
+  <div class="fg"><label>Package Total (sessions)</label>
     <div class="sess-row"><input type="number" id="newStudentTotal" value="8" min="1" max="999"><span>sessions</span></div>
   </div>
+  <div style="font-size:10px;color:var(--muted);padding:4px 0;">Schedule is added separately via [+ Add Class]</div>
   <div class="modal-btns">
     <button class="cancel-btn" id="closeAddStudent">Cancel</button>
     <button class="btn btn-primary" id="saveNewStudent">Add</button>
@@ -361,20 +359,17 @@ body{font-family:'Maple',-apple-system,sans-serif;background:var(--bg);color:var
 <!-- SESSIONS / EDIT STUDENT MODAL -->
 <div id="sessionsModal" class="modal-ov"><div class="modal">
   <h3 id="sessionsModalTitle">Edit Student</h3>
-  <div class="fg"><label>Sessions Completed / Total</label>
+  <div class="fg"><label>Sessions Done / Package Total</label>
     <div class="sess-row">
-      <input type="number" id="sDone" min="0" max="999">
+      <input type="number" id="sDone" min="0" max="999" placeholder="done">
       <span>/</span>
-      <input type="number" id="sTotal" min="1" max="999">
+      <input type="number" id="sTotal" min="1" max="999" placeholder="total">
       <span>sessions</span>
     </div>
+    <div style="font-size:10px;color:var(--muted);margin-top:4px;">e.g. 1/8 = 1 done out of 8-session package</div>
   </div>
-  <div class="fg"><label>Classes Per Day This Week</label>
+  <div class="fg"><label>Classes Per Day — This Week</label>
     <div class="count-grid" id="perDayCountGrid"></div>
-  </div>
-    <div class="fg" style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--accent-light);border-radius:8px;">
-    <input type="checkbox" id="sessRecurring" style="width:18px;height:18px;cursor:pointer;accent-color:var(--accent);">
-    <label style="font-size:12px;font-weight:600;cursor:pointer;color:var(--accent);" for="sessRecurring">Repeat weekly</label>
   </div>
   <div class="modal-btns">
     <button class="cancel-btn" id="closeSessionsModal">Cancel</button>
@@ -553,25 +548,44 @@ let editingStudentIdx=null,renamingStudentIdx=null;
 let editingClassKey=null; // {dayIdx, startSlot, name}
 let selectedColor=PRESET_COLORS[0];
 
-// students: {name, done, total, perDay[7], completedCount}
+// students: {id, name, total, perDay[7]}
+// weeklyStudentData[weekKey][studentId] = {done, perDay[7]} — isolated per week
 let students=[
-  {name:'차지정씨',done:0,total:8,perDay:[5,0,0,3,0,0,0],completedCount:0},
-  {name:'Hailey(예은)',done:0,total:8,perDay:[0,4,0,0,0,0,0],completedCount:0},
-  {name:'윤서',done:0,total:8,perDay:[0,0,4,0,2,0,0],completedCount:0},
-  {name:'Heidi',done:0,total:8,perDay:[0,0,0,3,0,0,0],completedCount:0},
-  {name:'수연',done:0,total:8,perDay:[0,0,0,0,3,0,0],completedCount:0},
-  {name:'서영',done:0,total:8,perDay:[0,0,0,1,2,0,0],completedCount:0},
-  {name:'Joel',done:0,total:8,perDay:[1,0,0,0,0,0,0],completedCount:0},
-  {name:'Elie',done:0,total:8,perDay:[3,0,0,3,0,0,0],completedCount:0},
-  {name:'Woo',done:0,total:8,perDay:[3,0,0,0,0,0,0],completedCount:0},
-  {name:'Serena',done:0,total:8,perDay:[1,0,0,0,0,0,0],completedCount:0},
-  {name:'캐서린',done:0,total:8,perDay:[0,0,0,0,0,5,0],completedCount:0},
-  {name:'빈센트',done:0,total:8,perDay:[0,0,0,0,0,3,0],completedCount:0},
-  {name:'예은[Woo]',done:0,total:8,perDay:[0,0,0,1,0,0,0],completedCount:0},
-  {name:'하경준용',done:0,total:8,perDay:[0,0,0,3,0,0,0],completedCount:0},
-  {name:'주연',done:0,total:8,perDay:[0,0,0,0,0,1,0],completedCount:0},
-  {name:'동혁분',done:0,total:8,perDay:[0,1,0,0,0,0,0],completedCount:0},
+  {id:'s01',name:'차지정씨',total:8,perDay:[5,0,0,3,0,0,0]},
+  {id:'s02',name:'Hailey(예은)',total:8,perDay:[0,4,0,0,0,0,0]},
+  {id:'s03',name:'윤서',total:8,perDay:[0,0,4,0,2,0,0]},
+  {id:'s04',name:'Heidi',total:8,perDay:[0,0,0,3,0,0,0]},
+  {id:'s05',name:'수연',total:8,perDay:[0,0,0,0,3,0,0]},
+  {id:'s06',name:'서영',total:8,perDay:[0,0,0,1,2,0,0]},
+  {id:'s07',name:'Joel',total:8,perDay:[1,0,0,0,0,0,0]},
+  {id:'s08',name:'Elie',total:8,perDay:[3,0,0,3,0,0,0]},
+  {id:'s09',name:'Woo',total:8,perDay:[3,0,0,0,0,0,0]},
+  {id:'s10',name:'Serena',total:8,perDay:[1,0,0,0,0,0,0]},
+  {id:'s11',name:'캐서린',total:8,perDay:[0,0,0,0,0,5,0]},
+  {id:'s12',name:'빈센트',total:8,perDay:[0,0,0,0,0,3,0]},
+  {id:'s13',name:'예은[Woo]',total:8,perDay:[0,0,0,1,0,0,0]},
+  {id:'s14',name:'하경준용',total:8,perDay:[0,0,0,3,0,0,0]},
+  {id:'s15',name:'주연',total:8,perDay:[0,0,0,0,0,1,0]},
+  {id:'s16',name:'동혁분',total:8,perDay:[0,1,0,0,0,0,0]},
 ];
+
+// Per-week progress data keyed by student ID (not name) — name changes don't affect past data
+let weeklyStudentData = {}; // { weekKey: { studentId: {done, perDay[7]} } }
+
+function genStudentId(){
+  return 's' + Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+}
+
+function getWeekStudentData(weekKey, student) {
+  if (!weeklyStudentData[weekKey]) weeklyStudentData[weekKey] = {};
+  if (!weeklyStudentData[weekKey][student.id]) {
+    weeklyStudentData[weekKey][student.id] = {
+      done: 0,
+      perDay: [...(student.perDay || Array(7).fill(0))]
+    };
+  }
+  return weeklyStudentData[weekKey][student.id];
+}
 
 // classes: {dayIdx(0=Mon), startSlot(EDT index), endSlot(EDT index), name}
 // Existing schedule - stored in EDT. Original slot mapping (6am EDT = index 2 in our 5am-start grid)
@@ -679,7 +693,15 @@ function renderMiniCal(){
 }
 
 // ── STATS ──
-function getPerDayCounts(){const p=Array(7).fill(0);students.forEach(s=>{s.perDay.forEach((v,i)=>p[i]+=v);});return p;}
+function getPerDayCounts(){
+  const wk = getWeekKey(currentWeekStart);
+  const p=Array(7).fill(0);
+  students.forEach(s=>{
+    const wd = getWeekStudentData(wk, s);
+    wd.perDay.forEach((v,i)=>p[i]+=v);
+  });
+  return p;
+}
 
 // Store manual overrides
 // Load statOverrides from localStorage
@@ -879,26 +901,38 @@ function renderGrid(){
 // ── STUDENT LIST ──
 function renderStudentList(){
   const c=document.getElementById('studentList');c.innerHTML='';
+  const wk = getWeekKey(currentWeekStart);
   students.forEach((s,idx)=>{
-    const wk=s.perDay.reduce((a,b)=>a+b,0);
+    const wd = getWeekStudentData(wk, s);
+    const wkTotal = wd.perDay.reduce((a,b)=>a+b,0);
+    const num = idx + 1;
     const item=document.createElement('div');item.className='s-item';
     item.innerHTML=`
       <div class="s-dot"></div>
       <div class="s-info">
-        <div class="s-name" title="Click to rename">${s.name}</div>
-        <div class="s-subinfo">${s.completedCount>0?`✅ ${s.completedCount} classes done · `:''} ${wk>0?`×${wk}/wk`:''}</div>
+        <div class="s-name" title="Click to rename"><span style="color:var(--muted);font-size:9px;margin-right:3px;">(${num})</span>${s.name}</div>
+        <div class="s-subinfo">${wkTotal>0?`×${wkTotal}/wk this week`:'No classes logged this week'}</div>
       </div>
       <div class="s-badge">
-        <button class="s-sess">${s.done}/${s.total}</button>
+        <button class="s-sess" title="Click to log this week's progress">${wd.done}/${s.total}</button>
         <span class="s-wk">${s.total} pkg</span>
       </div>
-      <button class="s-del">✕</button>
+      <button class="s-del" title="Remove student">✕</button>
     `;
     item.querySelector('.s-name').addEventListener('click',()=>openRenameModal(idx));
     item.querySelector('.s-sess').addEventListener('click',()=>openSessionsModal(idx));
-    item.querySelector('.s-del').addEventListener('click',()=>{if(confirm(`Remove ${s.name}?`)){students.splice(idx,1);classes=classes.filter(c=>c.n!==s.name);renderAll();}});
+    item.querySelector('.s-del').addEventListener('click',()=>openDeleteStudentModal(idx));
     c.appendChild(item);
   });
+}
+
+// ── DELETE STUDENT ──
+let deletingStudentIdx = null;
+function openDeleteStudentModal(idx) {
+  const s = students[idx];
+  if(!confirm(`Remove "${s.name}"?\n\nThis will delete all progress data across all weeks.`)) return;
+  students.splice(idx, 1);
+  renderAll(); scheduleSave();
 }
 
 // ── PERSONAL LIST ──
@@ -925,26 +959,26 @@ function renderPersonalList(){
 // ── SESSIONS MODAL ──
 function openSessionsModal(idx){
   editingStudentIdx=idx;const s=students[idx];
-  document.getElementById('sessionsModalTitle').textContent=`${s.name}`;
-  document.getElementById('sDone').value=s.done;
+  const wk = getWeekKey(currentWeekStart);
+  const wd = getWeekStudentData(wk, s);
+  document.getElementById('sessionsModalTitle').textContent=`${s.name} — This Week`;
+  document.getElementById('sDone').value=wd.done;
   document.getElementById('sTotal').value=s.total;
   const grid=document.getElementById('perDayCountGrid');grid.innerHTML='';
   DAYS.forEach((day,di)=>{
     const row=document.createElement('div');row.className='count-row';
-    row.innerHTML=`<label style="color:${DAY_COLORS[di]};font-weight:700">${day}</label><input type="number" id="pdCount_${di}" min="0" max="99" value="${s.perDay[di]}">`;
+    row.innerHTML=`<label style="color:${DAY_COLORS[di]};font-weight:700">${day}</label><input type="number" id="pdCount_${di}" min="0" max="99" value="${wd.perDay[di]}">`;
     grid.appendChild(row);
   });
-  const sessRec=document.getElementById('sessRecurring');
-  if(sessRec) sessRec.checked = s.recurringSchedule !== false;
   document.getElementById('sessionsModal').classList.add('open');
 }
 document.getElementById('saveSessionsBtn').addEventListener('click',()=>{
   const s=students[editingStudentIdx];
-  s.done=parseInt(document.getElementById('sDone').value)||0;
+  const wk = getWeekKey(currentWeekStart);
+  const wd = getWeekStudentData(wk, s);
+  wd.done=parseInt(document.getElementById('sDone').value)||0;
   s.total=parseInt(document.getElementById('sTotal').value)||1;
-  DAYS.forEach((_,di)=>{s.perDay[di]=parseInt(document.getElementById(`pdCount_${di}`).value)||0;});
-  const sessRec=document.getElementById('sessRecurring');
-  if(sessRec) s.recurringSchedule = sessRec.checked;
+  DAYS.forEach((_,di)=>{wd.perDay[di]=parseInt(document.getElementById(`pdCount_${di}`).value)||0;});
   document.getElementById('sessionsModal').classList.remove('open');renderAll();scheduleSave();
 });
 document.getElementById('closeSessionsModal').addEventListener('click',()=>document.getElementById('sessionsModal').classList.remove('open'));
@@ -958,10 +992,9 @@ function openRenameModal(idx){
 }
 document.getElementById('saveRenameBtn').addEventListener('click',()=>{
   const n=document.getElementById('renameInput').value.trim();if(!n)return;
-  const old=students[renamingStudentIdx].name;
+  // Only update the display name — weekly data stays linked via student.id, unaffected
   students[renamingStudentIdx].name=n;
-  classes.forEach(c=>{if(c.n===old)c.n=n;});
-  document.getElementById('renameModal').classList.remove('open');renderAll();
+  document.getElementById('renameModal').classList.remove('open');renderAll();scheduleSave();
 });
 document.getElementById('closeRenameModal').addEventListener('click',()=>document.getElementById('renameModal').classList.remove('open'));
 document.getElementById('renameInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('saveRenameBtn').click();});
@@ -973,10 +1006,10 @@ document.getElementById('addStudentBtn').addEventListener('click',()=>{
 });
 document.getElementById('closeAddStudent').addEventListener('click',()=>document.getElementById('addStudentModal').classList.remove('open'));
 document.getElementById('saveNewStudent').addEventListener('click',()=>{
-  const name=document.getElementById('newStudentName').value.trim();if(!name){alert('Enter a name!');return;}
+  const name=document.getElementById('newStudentName').value.trim();if(!name){alert('Please enter a name!');return;}
   const total=parseInt(document.getElementById('newStudentTotal').value)||8;
-  students.push({name,done:0,total,perDay:Array(7).fill(0),completedCount:0});
-  document.getElementById('addStudentModal').classList.remove('open');renderAll();
+  students.push({id:genStudentId(),name,total,perDay:Array(7).fill(0)});
+  document.getElementById('addStudentModal').classList.remove('open');renderAll();scheduleSave();
 });
 
 // ── POPULATE TIME SELECTS ──
@@ -997,17 +1030,15 @@ document.getElementById('openModalBtn').addEventListener('click',()=>{
 });
 document.getElementById('closeClassModal').addEventListener('click',()=>document.getElementById('classModal').classList.remove('open'));
 document.getElementById('saveClassBtn').addEventListener('click',()=>{
-  const name=document.getElementById('fName').value.trim();if(!name){alert('Enter student name!');return;}
+  const name=document.getElementById('fName').value.trim();if(!name){alert('Please enter a student name!');return;}
   const day=parseInt(document.getElementById('fDay').value);
   const startSlot=parseInt(document.getElementById('fTimeStart').value);
   let endSlot=parseInt(document.getElementById('fTimeEnd').value);
   if(endSlot<=startSlot)endSlot=startSlot+1;
-  const totalClasses=parseInt(document.getElementById('fTotalClasses').value)||8;
-  // Remove existing class for same student+day if overlaps
   const recurring=document.getElementById('fRecurring').checked;
   const weekKey=recurring?null:getWeekKey(currentWeekStart);
+  // Schedule only — does NOT auto-add to student list
   classes.push({d:day,s:startSlot,e:endSlot,n:name,recurring:recurring,weekKey:weekKey});
-  if(!students.find(s=>s.name===name))students.push({name,done:0,total:totalClasses,perDay:Array(7).fill(0),completedCount:0});
   document.getElementById('classModal').classList.remove('open');renderAll();scheduleSave();
 });
 
@@ -1306,6 +1337,7 @@ async function saveToFirebase() {
   try {
     await db.collection('timesync').doc(DOC_ID).set({
       students: JSON.stringify(students),
+      weeklyStudentData: JSON.stringify(weeklyStudentData),
       classes: JSON.stringify(classes),
       personal: JSON.stringify(personal),
       waitlist: document.getElementById('waitlistInput').value,
@@ -1315,8 +1347,7 @@ async function saveToFirebase() {
     console.log('Saved to Firebase ✅');
   } catch(e) {
     console.log('Firebase save error:', e);
-    // fallback to localStorage
-    localStorage.setItem('timesync_data', JSON.stringify({students, classes, personal}));
+    localStorage.setItem('timesync_data', JSON.stringify({students, weeklyStudentData, classes, personal}));
   }
 }
 
@@ -1326,10 +1357,16 @@ async function loadFromFirebase() {
     const doc = await db.collection('timesync').doc(DOC_ID).get();
     if (doc.exists) {
       const data = doc.data();
-      if (data.students) students = JSON.parse(data.students);
+      if (data.students) {
+        students = JSON.parse(data.students);
+        // Migrate: add IDs to old records that lack them
+        students.forEach(s=>{ if(!s.id) s.id = genStudentId(); });
+      }
+      if (data.weeklyStudentData) {
+        try { weeklyStudentData = JSON.parse(data.weeklyStudentData); } catch(e) { weeklyStudentData = {}; }
+      }
       if (data.classes) {
         classes = JSON.parse(data.classes);
-        // Fix: if recurring is undefined or missing, treat as true
         classes.forEach(c=>{ if(c.recurring===undefined) c.recurring=true; });
       }
       if (data.personal) {
@@ -1345,11 +1382,11 @@ async function loadFromFirebase() {
     }
   } catch(e) {
     console.log('Firebase load error:', e);
-    // fallback to localStorage
     const saved = localStorage.getItem('timesync_data');
     if(saved) {
       const d = JSON.parse(saved);
-      if(d.students) students = d.students;
+      if(d.students) { students = d.students; students.forEach(s=>{ if(!s.id) s.id=genStudentId(); }); }
+      if(d.weeklyStudentData) weeklyStudentData = d.weeklyStudentData;
       if(d.classes) classes = d.classes;
       if(d.personal) personal = d.personal;
       renderAll();
@@ -1358,17 +1395,21 @@ async function loadFromFirebase() {
 }
 
 // ── REAL-TIME LISTENER ──
-let lastLocalEdit = 0; // timestamp of last local edit
+let lastLocalEdit = 0;
 db.collection('timesync').doc(DOC_ID).onSnapshot(doc => {
   if (doc.exists) {
     const data = doc.data();
     const timeSinceEdit = Date.now() - lastLocalEdit;
-    // Don't overwrite local changes for 3 seconds after edit
     if(timeSinceEdit > 3000) {
-      if (data.students) students = JSON.parse(data.students);
+      if (data.students) {
+        students = JSON.parse(data.students);
+        students.forEach(s=>{ if(!s.id) s.id=genStudentId(); });
+      }
+      if (data.weeklyStudentData) {
+        try { weeklyStudentData = JSON.parse(data.weeklyStudentData); } catch(e) {}
+      }
       if (data.classes) {
         classes = JSON.parse(data.classes);
-        // Fix: if recurring is undefined or missing, treat as true
         classes.forEach(c=>{ if(c.recurring===undefined) c.recurring=true; });
       }
       if (data.personal) {
@@ -1411,7 +1452,6 @@ document.getElementById('saveRenameBtn').addEventListener('click', () => setTime
 document.getElementById('saveNewStudent').addEventListener('click', () => setTimeout(scheduleSave, 100), true);
 document.getElementById('saveClassBtn').addEventListener('click', () => setTimeout(scheduleSave, 100), true);
 document.getElementById('saveEditClassBtn').addEventListener('click', () => setTimeout(scheduleSave, 100), true);
-document.
 document.getElementById('savePersonalBtn').addEventListener('click', () => setTimeout(scheduleSave, 100), true);
 document.getElementById('waitlistInput').addEventListener('input', () => scheduleSave());
 
